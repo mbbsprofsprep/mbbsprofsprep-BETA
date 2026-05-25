@@ -54,11 +54,39 @@ const appShellHTML = `
 </div>
 `;
 
-// Insert HTML precisely
+// Insert HTML exactly at the start of the body
 document.body.insertAdjacentHTML('afterbegin', appShellHTML);
 
-// 2. GLOBALS & MODAL LOGIC
+// 2. GLOBALS & UTILITY FUNCTIONS
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
+
+window.toggleAuthMode = function(mode) { window.userPanelApp.authMode = mode; window.userPanelApp.renderState(); };
+
+window.togglePassword = function() {
+    const input = document.getElementById('login-pass') || document.getElementById('reg-pass');
+    const icon = document.getElementById('eye-icon');
+    if (!input) return;
+    if (input.type === "password") {
+        input.type = "text";
+        if(icon) icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.059 10.059 0 011.591-2.714M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1.5 1.5l22.5 22.5" />`;
+    } else {
+        input.type = "password";
+        if(icon) icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+    }
+};
+
+window.showAuthError = function(msg) {
+    const errDiv = document.getElementById('auth-error-msg');
+    if(errDiv) { errDiv.innerText = msg; errDiv.classList.remove('hidden'); setTimeout(() => errDiv.classList.add('hidden'), 5000); }
+    else { alert(msg); }
+};
+
+window.toggleTheme = function() {
+    const d = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', d?'dark':'light');
+    const icon = document.getElementById('theme-icon');
+    if(icon) icon.innerText = d?'☀️':'🌙';
+};
 
 window.openContributorModal = function() {
     const bd = document.getElementById('contributor-modal-backdrop');
@@ -192,17 +220,48 @@ window.userPanelApp = {
                 
                 els.footer.innerHTML = legalFooterHtml + `<button onclick="window.firebaseSignOut()" class="w-full py-3 mt-4 rounded-xl bg-red-50 text-red-600 font-bold border border-red-200 shadow-sm text-sm">Logout</button>`;
             } 
-            // (Other views like 'bookmarks' would go here as previously written)
         } else {
-            // GUEST VIEW (Login/Register Forms - Kept exactly as your original UI)
-            els.body.innerHTML = `<div class="flex flex-col items-center justify-center min-h-[50vh] text-center"><img src="${APP_LOGO_URL}" class="w-20 h-20 rounded-2xl shadow-xl ring-4 ring-brand-400/30 mb-6"><h3 class="text-2xl font-black mb-2">Welcome Back</h3><p class="text-sm text-slate-500 mb-6">Log in to sync your progress.</p><button onclick="alert('Firebase Auth Required')" class="w-full py-4 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg">Sign In / Register</button></div>`;
+            // GUEST VIEW (Restored Original Login/Register Forms)
+            if (this.authMode === 'login') {
+                els.body.innerHTML = `
+                    <div class="flex flex-col items-center justify-center min-h-[calc(100vh-250px)]">
+                        <img src="${APP_LOGO_URL}" class="w-20 h-20 rounded-2xl shadow-xl ring-4 ring-offset-4 ring-brand-400/30 mb-6 object-cover" alt="Logo">
+                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Welcome Back</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Log in to sync your progress.</p>
+                        <div id="auth-error-msg" class="hidden w-full bg-red-50 text-red-600 border border-red-200 text-xs p-3 rounded-xl mb-4 text-center font-bold"></div>
+                        <div class="w-full space-y-3 mb-6 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <div class="relative w-full">
+                                <input type="password" id="login-pass" placeholder="Password" class="w-full pl-4 pr-10 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                                <button type="button" onclick="window.togglePassword()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                            </div>
+                        </div>
+                        <button onclick="window.handleEmailLogin(this)" class="w-full py-4 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 active:scale-95 transition-all hover:bg-brand-600">Sign In</button>
+                        <div class="text-center mt-6"><span class="text-sm text-slate-500">Don't have an account?</span> <button onclick="window.toggleAuthMode('register')" class="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline ml-1">Create One</button></div>
+                    </div>`;
+            } else {
+                els.body.innerHTML = `
+                    <div class="flex flex-col items-center justify-start min-h-[calc(100vh-250px)] pb-4">
+                        <img src="${APP_LOGO_URL}" class="w-16 h-16 rounded-2xl shadow-xl ring-2 ring-offset-2 ring-brand-400/50 mb-4 object-cover mt-2" alt="Logo">
+                        <h3 class="text-xl font-black text-slate-900 dark:text-white mb-1">Create Global Profile</h3>
+                        <p class="text-sm text-slate-500 mb-6">Join the community.</p>
+                        <div id="auth-error-msg" class="hidden w-full bg-red-50 text-red-600 border border-red-200 text-xs p-3 rounded-xl mb-4 text-center font-bold"></div>
+                        <div class="w-full space-y-3 mb-6 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <input type="text" id="reg-name" placeholder="Full Name" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <input type="email" id="reg-email" placeholder="Email Address" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <input type="password" id="reg-pass" placeholder="Create Password (Min 6)" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                        </div>
+                        <button onclick="window.handleEmailSignUp(this)" class="w-full py-4 rounded-xl text-sm font-bold bg-green-600 text-white shadow-lg shadow-green-600/30 active:scale-95 transition-all hover:bg-green-700">Create Account</button>
+                        <div class="text-center mt-6"><span class="text-sm text-slate-500">Already have an account?</span><button onclick="window.toggleAuthMode('login')" class="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline ml-1">Sign In</button></div>
+                    </div>`;
+            }
             els.footer.innerHTML = legalFooterHtml;
         }
     }
 };
 
 // ==========================================
-// MOCK FIREBASE CONNECTION LOGIC (For Index.html to override)
+// CONTRIBUTOR APPLICATION SUBMISSION LOGIC
 // ==========================================
 window.submitContributorApplication = async function() {
     const btn = document.getElementById('app-submit-btn');
@@ -214,18 +273,23 @@ window.submitContributorApplication = async function() {
     
     btn.disabled = true;
     btn.innerText = "Submitting securely...";
-
-    // 🔴 IN PRODUCTION: This logic should be placed in your main Firebase file
-    // 1. Upload `file` to Firebase Storage `contributor_ids/{uid}_{timestamp}.jpg`
-    // 2. Get Download URL
-    // 3. Update Firestore `users/{uid}` -> { contributorStatus: 'pending', idUrl: downloadURL, name, college }
     
-    // Fake Timeout for UI demonstration
+    // In actual production, you would upload this file to Firebase Storage 
+    // and write to the user's Firestore document here.
+    
+    // Simulating database write delay for the UI
     setTimeout(() => {
         window.currentUserProfileData = window.currentUserProfileData || {};
         window.currentUserProfileData.contributorStatus = 'pending';
         window.closeContributorModal();
-        window.userPanelApp.renderState(); // UI will instantly switch to "Under Review" state
-        alert("Application Submitted! Admin will review within 24 hours.");
+        window.userPanelApp.renderState(); // Refreshes to show the "Under Review" state
+        alert("Application Submitted! Our admin team will review your ID card shortly.");
     }, 1500);
 };
+
+// Register Service Worker if it exists
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((error) => console.log('SW failed: ', error));
+    });
+}
