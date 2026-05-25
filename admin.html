@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Ingestion - MBBS Profs Prep</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class', 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        brand: { 50:'#f0f9ff', 100:'#e0f2fe', 200:'#bae6fd', 400:'#3395ff', 500:'#0ea5e9', 600:'#0284c7', 900:'#0c4a6e' }, 
+                        dark: { bg: '#020617', surface: '#0f172a', border: '#1e293b' } 
+                    }, 
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } 
+                } 
+            } 
+        }
+    </script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+        body { background-color: #f0f9ff; color: #0f172a; transition: background-color 0.3s ease, color 0.3s ease; }
+        html.dark body { background-color: #020617 !important; color: #f8fafc !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 10px; }
+        html.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+        
+        .glass-panel { background: rgba(255, 255, 255, 0.95); border: 1px solid #e0f2fe; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        html.dark .glass-panel { background: #0f172a; border: 1px solid #1e293b; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-brand-50 dark:bg-dark-bg flex flex-col h-screen">
+
+    <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');</script>
+    <script src="app-shell.js"></script>
+
+    <div id="admin-guard" class="fixed inset-0 z-[9999] bg-white dark:bg-dark-bg flex flex-col items-center justify-center text-center p-6">
+        <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mb-4 shadow-inner border border-red-200 dark:border-red-800">🛑</div>
+        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Access Denied</h3>
+        <p class="text-slate-500 dark:text-slate-400 mb-6 font-medium">This is a restricted operational dashboard. Admin credentials required.</p>
+        <button onclick="window.location.href='index.html'" class="px-8 py-3 bg-brand-500 text-white font-bold rounded-xl shadow-lg border-none hover:bg-brand-600 transition-colors">Return Home</button>
+    </div>
+
+    <div id="admin-dashboard" class="hidden flex-1 flex flex-col md:flex-row h-full pt-16 overflow-hidden">
+        
+        <div class="w-full md:w-1/2 flex flex-col border-r border-slate-200 dark:border-slate-800 h-full bg-slate-50 dark:bg-dark-bg">
+            
+            <div class="h-40 shrink-0 border-b border-slate-200 dark:border-slate-800 p-4 overflow-y-auto custom-scrollbar glass-panel z-10">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Pending Verification Queue</h2>
+                    <span id="queue-count" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <div id="pending-queue-list" class="space-y-2">
+                    <div class="text-xs text-slate-500 italic">Loading pending uploads...</div>
+                </div>
+            </div>
+
+            <div class="flex-1 p-4 relative overflow-hidden bg-slate-100 dark:bg-slate-900 flex flex-col items-center justify-center">
+                <p id="preview-placeholder" class="text-slate-400 dark:text-slate-500 font-bold text-sm">Select a document from the queue to preview</p>
+                <iframe id="doc-preview" class="hidden w-full h-full rounded-xl border border-slate-300 dark:border-slate-700 shadow-inner bg-white"></iframe>
+            </div>
+        </div>
+
+        <div class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar p-6 glass-panel relative">
+            <h2 class="text-2xl font-black text-brand-600 dark:text-brand-400 mb-1">Data Extractor</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 font-medium">Extract questions from the raw paper to generate clean JSON.</p>
+
+            <form id="extraction-form" onsubmit="event.preventDefault(); window.approveAndGenerate();">
+                <input type="hidden" id="ext-doc-id">
+                <input type="hidden" id="ext-uploader-id">
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Q-ID (e.g., DGH102)</label>
+                        <input type="text" id="ext-qid" required class="w-full px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Type</label>
+                        <select id="ext-type" class="w-full px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="Theory">Theory</option>
+                            <option value="MCQ">MCQ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Question Stem</label>
+                    <textarea id="ext-stem" required rows="4" placeholder="Type the extracted question here..." class="w-full p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Chapter / Unit</label>
+                        <input type="text" id="ext-chapter" required placeholder="e.g., 13. Joints of Upper Limb" class="w-full px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Exam Batch / Reference</label>
+                        <input type="text" id="ext-batch" required class="w-full px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+
+                <button type="submit" id="approve-btn" disabled class="w-full py-4 rounded-xl text-sm font-bold bg-green-500 text-white shadow-lg shadow-green-500/30 active:scale-95 transition-all hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed">Approve & Generate JSON</button>
+            </form>
+
+            <div id="json-output-area" class="hidden mt-6">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-[10px] font-bold text-brand-500 uppercase">Generated JSON Object</label>
+                    <button onclick="window.copyJSON()" class="text-[10px] font-bold bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded hover:bg-slate-300 transition-colors dark:text-slate-300">Copy</button>
+                </div>
+                <pre id="json-code" class="w-full p-4 rounded-xl bg-slate-900 text-green-400 text-xs overflow-x-auto border border-slate-800 font-mono"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, query, where, orderBy, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvPdEhkK1VDkuAqIhlSXPL2MXxlv7Mo9c",
+            authDomain: "mbbs-profs-prep48c.firebaseapp.com",
+            projectId: "mbbs-profs-prep48c",
+            storageBucket: "mbbs-profs-prep48c.firebasestorage.app",
+            messagingSenderId: "378639777472",
+            appId: "1:378639777472:web:9c2dcb689d97025f6ff725"
+        };
+        
+        const fbApp = initializeApp(firebaseConfig);
+        const auth = getAuth(fbApp);
+        const db = getFirestore(fbApp);
+
+        const ADMIN_EMAILS = ["pankajmahto109@gmail.com", "educateindiainstitute@gmail.com"];
+        let currentUploads = [];
+
+        // 1. Auth Guard
+        onAuthStateChanged(auth, (user) => {
+            if (user && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+                document.getElementById('admin-guard').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                fetchPendingQueue();
+            } else {
+                document.getElementById('admin-guard').classList.remove('hidden');
+                document.getElementById('admin-dashboard').classList.add('hidden');
+            }
+        });
+
+        // 2. Fetch Pending Uploads
+        async function fetchPendingQueue() {
+            const listEl = document.getElementById('pending-queue-list');
+            listEl.innerHTML = '<div class="text-xs text-slate-500 italic">Fetching...</div>';
+            
+            try {
+                const q = query(collection(db, "uploads"), where("status", "==", "pending"), orderBy("submittedAt", "asc"));
+                const querySnapshot = await getDocs(q);
+                
+                currentUploads = [];
+                querySnapshot.forEach((doc) => {
+                    currentUploads.push({ id: doc.id, ...doc.data() });
+                });
+
+                document.getElementById('queue-count').innerText = currentUploads.length;
+
+                if (currentUploads.length === 0) {
+                    listEl.innerHTML = '<div class="text-xs text-slate-400 font-bold p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">All caught up! No pending uploads.</div>';
+                    return;
+                }
+
+                listEl.innerHTML = currentUploads.map((item, index) => `
+                    <div onclick="window.selectDocument(${index})" class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-brand-400 transition-colors group">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">${item.college} • ${item.subject}</span>
+                            <span class="text-[10px] text-slate-400">${new Date(item.submittedAt.toDate()).toLocaleDateString()}</span>
+                        </div>
+                        <div class="text-sm font-bold text-slate-800 dark:text-white truncate">${item.originalFileName}</div>
+                        <div class="text-[10px] text-slate-500 mt-1">Uploaded by: ${item.uploaderEmail}</div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error("Error fetching queue:", error);
+                listEl.innerHTML = `<div class="text-xs text-red-500">Error loading queue. Check console.</div>`;
+            }
+        }
+
+        // 3. Select Document & Load Extractor
+        window.selectDocument = function(index) {
+            const item = currentUploads[index];
+            if (!item) return;
+
+            // Load Iframe Preview
+            const previewIframe = document.getElementById('doc-preview');
+            document.getElementById('preview-placeholder').classList.add('hidden');
+            previewIframe.classList.remove('hidden');
+            previewIframe.src = item.fileURL;
+
+            // Pre-fill Extractor Form
+            document.getElementById('ext-doc-id').value = item.id;
+            document.getElementById('ext-uploader-id').value = item.uploaderId;
+            document.getElementById('ext-batch').value = item.examBatch;
+            document.getElementById('ext-chapter').value = ''; // Requires manual analysis
+            document.getElementById('ext-stem').value = '';
+            document.getElementById('ext-qid').value = '';
+
+            document.getElementById('approve-btn').disabled = false;
+            document.getElementById('json-output-area').classList.add('hidden');
+        };
+
+        // 4. Approve & Generate JSON
+        window.approveAndGenerate = async function() {
+            const docId = document.getElementById('ext-doc-id').value;
+            const uploaderId = document.getElementById('ext-uploader-id').value;
+            const btn = document.getElementById('approve-btn');
+            
+            if(!docId) return alert("Select a document from the queue first.");
+
+            btn.disabled = true;
+            btn.innerText = "Approving...";
+
+            // Build JSON
+            const jsonObject = {
+                "q": document.getElementById('ext-qid').value.trim(),
+                "type": document.getElementById('ext-type').value,
+                "stem": document.getElementById('ext-stem').value.trim(),
+                "ans_key": "",
+                "chapter": document.getElementById('ext-chapter').value.trim(),
+                "examBatch": document.getElementById('ext-batch').value.trim()
+            };
+
+            try {
+                // Update Upload Status
+                await updateDoc(doc(db, "uploads", docId), { status: "approved" });
+
+                // Increment Uploader's Trust Score (Reward Loop)
+                if (uploaderId) {
+                    await updateDoc(doc(db, "users", uploaderId), { 
+                        trustScore: increment(1),
+                        uploadsCount: increment(1)
+                    });
+                }
+
+                // Show JSON
+                document.getElementById('json-code').innerText = JSON.stringify(jsonObject, null, 4) + ",";
+                document.getElementById('json-output-area').classList.remove('hidden');
+
+                // Cleanup UI
+                btn.innerText = "Approved & Rewarded!";
+                btn.classList.replace('bg-green-500', 'bg-brand-500');
+                
+                setTimeout(() => {
+                    btn.innerText = "Approve & Generate JSON";
+                    btn.classList.replace('bg-brand-500', 'bg-green-500');
+                    fetchPendingQueue(); // Refresh queue
+                }, 2000);
+
+            } catch (e) {
+                console.error("Approval error:", e);
+                alert("Database update failed: " + e.message);
+                btn.disabled = false;
+                btn.innerText = "Approve & Generate JSON";
+            }
+        };
+
+        // Utility: Copy JSON
+        window.copyJSON = function() {
+            const text = document.getElementById('json-code').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("JSON copied to clipboard! Paste this into your anatomy_aiims_deoghar_data.json file.");
+            });
+        };
+    </script>
+</body>
+</html>
