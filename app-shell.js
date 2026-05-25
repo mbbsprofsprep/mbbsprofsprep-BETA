@@ -4,7 +4,7 @@
 
 const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com"];
 
-// 1. INJECT THE NAVBAR, SIDEBAR & MODALS HTML
+// 1. INJECT THE NAVBAR & SIDEBAR HTML + CONTRIBUTOR MODAL
 const appShellHTML = `
     <nav class="fixed top-0 w-full z-50 border-b border-brand-100 dark:border-slate-800 bg-white/90 dark:bg-dark-bg/95 backdrop-blur-md transition-colors">
         <div class="w-full px-4 md:px-6 py-3 flex justify-between items-center max-w-7xl mx-auto">
@@ -48,7 +48,7 @@ const appShellHTML = `
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-brand-50 dark:bg-slate-800/50">
                 <div>
                     <h3 class="font-black text-lg text-brand-600 dark:text-brand-400">Contributor Application</h3>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Identity Verification</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Milestones & Verification</p>
                 </div>
                 <button onclick="window.closeContributorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
@@ -60,8 +60,22 @@ const appShellHTML = `
                         <div class="flex items-start gap-3">
                             <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-lg shrink-0 border border-green-200 dark:border-green-800">⭐</div>
                             <div>
-                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-none">Contributor</p>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-none">Contributor <span class="text-[10px] text-slate-500 font-bold ml-1 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">1 Paper</span></p>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Earn <span class="text-green-600 dark:text-green-400 font-bold">30 Days</span> of Premium Access per approved paper.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-lg shrink-0 border border-blue-200 dark:border-blue-800">🛡️</div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-none">Verified <span class="text-[10px] text-slate-500 font-bold ml-1 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">3 Papers</span></p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Unlock <span class="text-blue-600 dark:text-blue-400 font-bold">6 Months</span> of Premium & a Verified Profile Badge.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-lg shrink-0 border border-purple-200 dark:border-purple-800">👑</div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-none">Campus Lead <span class="text-[10px] text-slate-500 font-bold ml-1 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">10 Papers</span></p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Unlock <span class="text-purple-600 dark:text-purple-400 font-bold">Permanent VIP Access</span> & Leadership Status.</p>
                             </div>
                         </div>
                     </div>
@@ -95,63 +109,128 @@ const appShellHTML = `
     </div>
 `;
 
+// Insert the HTML directly into the page exactly at the start of the <body>
 document.body.insertAdjacentHTML('afterbegin', appShellHTML);
+
 
 // 2. GLOBALS & UI STATE
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
 
 window.toggleAuthMode = function(mode) { window.userPanelApp.authMode = mode; window.userPanelApp.renderState(); };
-window.showAuthError = function(msg) { const errDiv = document.getElementById('auth-error-msg'); if(errDiv) { errDiv.innerText = msg; errDiv.classList.remove('hidden'); setTimeout(() => errDiv.classList.add('hidden'), 5000); } else { alert(msg); } };
-window.toggleTheme = function() { const d = document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', d?'dark':'light'); const icon = document.getElementById('theme-icon'); if(icon) icon.innerText = d?'☀️':'🌙'; };
-window.openContributorModal = function() { document.getElementById('contributor-modal-backdrop').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('contributor-modal-card').classList.remove('scale-95'); };
-window.closeContributorModal = function() { document.getElementById('contributor-modal-backdrop').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('contributor-modal-card').classList.add('scale-95'); };
+
+window.togglePassword = function() {
+    const input = document.getElementById('login-pass') || document.getElementById('reg-pass');
+    const icon = document.getElementById('eye-icon');
+    if (!input) return;
+    if (input.type === "password") {
+        input.type = "text";
+        if(icon) icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.059 10.059 0 011.591-2.714M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1.5 1.5l22.5 22.5" />`;
+    } else {
+        input.type = "password";
+        if(icon) icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+    }
+};
+
+window.showAuthError = function(msg) {
+    const errDiv = document.getElementById('auth-error-msg');
+    if(errDiv) { errDiv.innerText = msg; errDiv.classList.remove('hidden'); setTimeout(() => errDiv.classList.add('hidden'), 5000); } 
+    else { alert(msg); }
+};
+
+window.toggleTheme = function() {
+    const d = document.documentElement.classList.toggle('dark'); 
+    localStorage.setItem('theme', d?'dark':'light');
+    const icon = document.getElementById('theme-icon'); 
+    if(icon) icon.innerText = d?'☀️':'🌙'; 
+    if(window.update3D) window.update3D();
+}
+
+window.openContributorModal = function() {
+    document.getElementById('contributor-modal-backdrop').classList.remove('opacity-0', 'pointer-events-none');
+    document.getElementById('contributor-modal-card').classList.remove('scale-95');
+};
+
+window.closeContributorModal = function() {
+    document.getElementById('contributor-modal-backdrop').classList.add('opacity-0', 'pointer-events-none');
+    document.getElementById('contributor-modal-card').classList.add('scale-95');
+};
 
 // 3. THE MULTI-VIEW USER PANEL APP
 window.userPanelApp = {
     isOpen: false, authMode: 'login', viewMode: 'menu', 
-    els: function() { return { drawer: document.getElementById('user-panel-drawer'), backdrop: document.getElementById('user-panel-backdrop'), body: document.getElementById('user-panel-body'), footer: document.getElementById('user-panel-footer') } },
+    
+    els: function() { 
+        return { drawer: document.getElementById('user-panel-drawer'), backdrop: document.getElementById('user-panel-backdrop'), body: document.getElementById('user-panel-body'), footer: document.getElementById('user-panel-footer') }
+    },
+    
     toggle: function() { this.isOpen ? this.close() : this.open(); },
-    open: function() { this.isOpen = true; this.viewMode = 'menu'; this.renderState(); const e = this.els(); if(e.drawer) e.drawer.classList.remove('-translate-x-full'); if(e.backdrop) e.backdrop.classList.remove('opacity-0', 'pointer-events-none'); },
-    close: function() { this.isOpen = false; const e = this.els(); if(e.drawer) e.drawer.classList.add('-translate-x-full'); if(e.backdrop) e.backdrop.classList.add('opacity-0', 'pointer-events-none'); },
+    
+    open: function() { 
+        this.isOpen = true; this.viewMode = 'menu'; this.renderState(); 
+        const e = this.els();
+        if(e.drawer) e.drawer.classList.remove('-translate-x-full'); 
+        if(e.backdrop) e.backdrop.classList.remove('opacity-0', 'pointer-events-none'); 
+    },
+    
+    close: function() { 
+        this.isOpen = false; 
+        const e = this.els();
+        if(e.drawer) e.drawer.classList.add('-translate-x-full'); 
+        if(e.backdrop) e.backdrop.classList.add('opacity-0', 'pointer-events-none'); 
+    },
+    
     setView: function(view) { this.viewMode = view; this.renderState(); },
     
     renderState: function() {
         const user = window.currentUserObj; const pData = window.currentUserProfileData || {};
         const els = this.els(); if(!els.body || !els.footer) return;
-        const legalFooterHtml = `<div class="flex justify-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-4"><a href="#">Terms</a> • <a href="#">Privacy</a> • <a href="#">Contact</a></div>`;
+        
+        const legalFooterHtml = `
+    <div class="flex flex-wrap justify-center gap-x-3 gap-y-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide w-full px-2 mb-2 mt-4">
+        <a href="legal.html?page=about" class="hover:text-brand-500 transition-colors">About Us</a> • 
+        <a href="legal.html?page=contact" class="hover:text-brand-500 transition-colors">Contact</a> • 
+        <a href="legal.html?page=terms" class="hover:text-brand-500 transition-colors">Terms</a> • 
+        <a href="legal.html?page=privacy" class="hover:text-brand-500 transition-colors">Privacy</a> • 
+        <a href="legal.html?page=refunds" class="hover:text-brand-500 transition-colors">Refunds</a>
+    </div>`;
 
         if (user) {
-            // ADMIN CHECK
-            const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+            const isAdmin = ADMIN_EMAILS.includes((user.email || '').toLowerCase());
+            const trustScore = pData.trustScore || 0;
+            const cStatus = pData.contributorStatus || 'none'; 
+            const isContributor = trustScore >= 1 || cStatus === 'approved';
 
             if (this.viewMode === 'menu') {
+                let badgeHtml = ''; let daysHtml = '';
+                if (window.globalUserStatus && window.globalUserStatus.isVIP) {
+                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-brand-200 dark:border-brand-800">PRO / VIP ACCESS</span>`;
+                    const fd = window.globalUserStatus.validUntil === 'Lifetime Access' ? 'Lifetime Access' : new Date(window.globalUserStatus.validUntil).toLocaleDateString('en-US');
+                    daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex flex-col items-center"><span class="text-2xl font-black text-green-600 dark:text-green-400">${window.globalUserStatus.daysLeft === 999 ? '∞' : window.globalUserStatus.daysLeft}</span><span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Days Left</span><span class="text-[10px] font-medium text-slate-400 mt-1">Valid until ${fd}</span></div>`;
+                } else if (window.globalUserStatus && window.globalUserStatus.expired) {
+                    const daysAgo = Math.abs(window.globalUserStatus.daysLeft);
+                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-red-200 dark:border-red-800">EXPIRED</span>`;
+                    daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex flex-col items-center text-center"><span class="text-xs font-bold text-red-600 dark:text-red-400">Oops! Your subscription ended ${daysAgo} days ago.</span><a href="checkout.html" class="mt-2 text-xs font-bold bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-sm">Renew Now</a></div>`;
+                } else {
+                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-slate-300 dark:border-slate-700">FREE PLAN</span>`;
+                    daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex flex-col items-center text-center"><span class="text-xs font-bold text-blue-600 dark:text-blue-400">Membership Required</span><a href="checkout.html" class="mt-2 text-xs font-bold bg-brand-500 text-white px-3 py-1.5 rounded-lg shadow-sm hover:bg-brand-600">Unlock QBank</a></div>`;
+                }
+
                 const nameToDisplay = user.displayName || pData.fullName || "User";
-                const initial = user.email.charAt(0).toUpperCase();
+                const initial = (user.email || 'U').charAt(0).toUpperCase();
 
-                const trustScore = pData.trustScore || 0;
-                const cStatus = pData.contributorStatus || 'none'; 
-                const isContributor = trustScore >= 1 || cStatus === 'approved';
-
+                // DYNAMIC WORKFLOW HTML FOR MENUS
                 let workflowHtml = '';
-
-                // --- ADMIN VIEW ---
                 if (isAdmin) {
                     workflowHtml = `
                     <a onclick="window.userPanelApp.setView('admin_apps')" class="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-800 cursor-pointer shadow-sm group mt-4 hover:bg-red-100 transition-colors">
                         <div class="flex items-center gap-4 text-red-700 dark:text-red-400 font-semibold text-sm">
                             <span class="w-10 h-10 rounded-xl bg-red-200 dark:bg-red-800 flex items-center justify-center text-xl">📋</span> 
-                            <div class="flex flex-col">
-                                <span class="font-bold leading-tight">Review Applications</span>
-                                <span class="text-[10px] font-bold opacity-80 mt-0.5">Admin Dashboard</span>
-                            </div>
-                        </div>
-                        <span class="text-red-500 font-bold">❯</span>
+                            <div class="flex flex-col"><span class="font-bold leading-tight">Review Applications</span><span class="text-[10px] font-bold opacity-80 mt-0.5">Admin Dashboard</span></div>
+                        </div><span class="text-red-500 font-bold">❯</span>
                     </a>
                     <a href="upload.html" class="flex items-center justify-between p-4 bg-brand-50 dark:bg-brand-900/10 rounded-2xl border border-brand-200 dark:border-brand-800 cursor-pointer shadow-sm group mt-2 hover:bg-brand-100 transition-colors">
                         <div class="flex items-center gap-4 text-brand-700 dark:text-brand-400 font-semibold text-sm"><span class="w-10 h-10 rounded-xl bg-brand-200 dark:bg-brand-800 flex items-center justify-center text-xl">📤</span> Upload Panel (Admin)</div><span class="text-brand-500 font-bold">❯</span>
                     </a>`;
-                
-                // --- APPROVED CONTRIBUTOR VIEW ---
                 } else if (isContributor) {
                     workflowHtml = `
                     <a href="upload.html" class="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl border-none shadow-lg hover:shadow-green-500/30 cursor-pointer transition-all group mt-4">
@@ -160,33 +239,18 @@ window.userPanelApp = {
                             <div class="flex flex-col"><span class="font-bold leading-tight">Upload Qs Paper</span><span class="text-[10px] font-bold opacity-80 mt-0.5">+ Earn Trust Score</span></div>
                         </div><span class="text-white/70 text-xs font-bold bg-black/10 px-2 py-1 rounded-md">Go</span>
                     </a>`;
-                
-                // --- PENDING VIEW ---
                 } else if (cStatus === 'pending') {
                     workflowHtml = `
                     <div class="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-800 mt-4 flex gap-3">
                         <div class="text-2xl animate-pulse">⏳</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-amber-800 dark:text-amber-400">Application Under Review</h4>
-                            <p class="text-[10px] text-amber-600 dark:text-amber-500 mt-1 font-medium leading-relaxed">Our admin team is verifying your College ID. You will unlock the upload portal once approved.</p>
-                        </div>
+                        <div><h4 class="text-sm font-bold text-amber-800 dark:text-amber-400">Application Under Review</h4><p class="text-[10px] text-amber-600 mt-1 font-medium">Verifying your College ID...</p></div>
                     </div>`;
-                
-                // --- REJECTED VIEW (Allows Re-application) ---
                 } else if (cStatus === 'rejected') {
                     workflowHtml = `
-                    <div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-800 mt-4 flex flex-col gap-2">
-                        <div class="flex gap-3">
-                            <div class="text-2xl">❌</div>
-                            <div>
-                                <h4 class="text-sm font-bold text-red-800 dark:text-red-400">Application Rejected</h4>
-                                <p class="text-[10px] text-red-600 dark:text-red-500 mt-1 font-medium leading-relaxed">Reason: ${pData.rejectionReason || 'Identity verification failed.'}</p>
-                            </div>
-                        </div>
-                        <button onclick="window.openContributorModal()" class="mt-2 w-full py-2 bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm hover:bg-red-700 transition-colors">Submit New Application</button>
+                    <div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-800 mt-4">
+                        <div class="flex gap-3"><div class="text-2xl">❌</div><div><h4 class="text-sm font-bold text-red-800 dark:text-red-400">Application Rejected</h4><p class="text-[10px] text-red-600 mt-1 font-medium">Reason: ${pData.rejectionReason || 'Identity verification failed.'}</p></div></div>
+                        <button onclick="window.openContributorModal()" class="mt-3 w-full py-2 bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm hover:bg-red-700 transition-colors">Submit New Application</button>
                     </div>`;
-
-                // --- NORMAL USER VIEW ---
                 } else {
                     workflowHtml = `
                     <div class="bg-gradient-to-br from-brand-600 to-purple-700 rounded-2xl p-5 text-white mt-4 shadow-xl relative overflow-hidden">
@@ -194,27 +258,30 @@ window.userPanelApp = {
                             <h4 class="font-black text-lg mb-1 shadow-sm">Become a Contributor</h4>
                             <p class="text-xs text-brand-100 font-medium mb-4 leading-relaxed">Help the community grow and earn permanent platform perks.</p>
                             <button onclick="window.openContributorModal()" class="w-full py-3 bg-white text-brand-700 font-black rounded-xl hover:scale-[1.02] transition-transform shadow-lg">View Perks & Apply</button>
-                        </div>
+                        </div><div class="absolute -right-6 -bottom-6 text-8xl opacity-10 blur-sm">🎁</div>
                     </div>`;
                 }
 
                 els.body.innerHTML = `
-                    <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <div class="w-20 h-20 rounded-full bg-brand-50 dark:bg-slate-800 flex items-center justify-center text-3xl font-bold text-brand-600 dark:text-brand-400 mb-3">${initial}</div>
+                    <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                        <div class="w-20 h-20 rounded-full bg-brand-50 dark:bg-slate-800 flex items-center justify-center text-3xl font-bold text-brand-600 dark:text-brand-400 mb-3 shadow-md border border-brand-100 dark:border-slate-700">${initial}</div>
                         <h3 class="font-bold text-slate-900 dark:text-white text-center w-full truncate px-2 text-sm">${nameToDisplay}</h3>
                         <p class="text-xs text-slate-500 truncate w-full text-center mt-1">${user.email}</p>
-                        ${isAdmin ? '<span class="px-3 py-1 mt-3 bg-red-100 text-red-600 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-red-200">System Admin</span>' : ''}
+                        ${isAdmin ? '<span class="px-3 py-1 mt-3 bg-red-100 text-red-600 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-red-200">System Admin</span>' : badgeHtml}
+                        ${!isAdmin ? daysHtml : ''}
                     </div>
+                    
                     ${workflowHtml}
+
                     <div class="flex flex-col gap-3 mt-4">
-                        <a onclick="window.userPanelApp.setView('edit_profile')" class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 cursor-pointer shadow-sm group"><div class="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold text-sm"><span class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-500 text-xl">👤</span> My Profile</div><span class="text-slate-400 text-xs">❯</span></a>
+                        <a onclick="window.userPanelApp.setView('edit_profile')" class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-700 cursor-pointer transition-all shadow-sm group"><div class="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold text-sm"><span class="w-10 h-10 rounded-xl bg-brand-50 dark:bg-slate-800 flex items-center justify-center text-brand-500 text-xl">👤</span> My Profile</div><span class="text-slate-400 text-xs">❯</span></a>
+                        <a onclick="window.userPanelApp.setView('bookmarks')" class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-accent-yellow/50 cursor-pointer transition-all shadow-sm group"><div class="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold text-sm"><span class="w-10 h-10 rounded-xl bg-accent-yellow/10 dark:bg-slate-800 flex items-center justify-center text-accent-yellow text-xl">🔖</span> Bookmarks & Saved</div><span class="text-slate-400 text-xs">❯</span></a>
+                        <a href="checkout.html" class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 cursor-pointer transition-all shadow-sm group"><div class="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold text-sm"><span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-slate-800 flex items-center justify-center text-purple-500 text-xl">💳</span> Subscription & Billing</div><span class="text-slate-400 text-xs">❯</span></a>
                     </div>`;
                 
-                els.footer.innerHTML = `${legalFooterHtml}<button onclick="window.firebaseSignOut()" class="w-full py-3.5 rounded-xl bg-red-50 text-red-600 font-bold mt-2 shadow-sm text-sm border border-red-200">Logout</button>`;
+                els.footer.innerHTML = `${legalFooterHtml}<button onclick="window.firebaseSignOut()" class="w-full py-3.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold mt-2 shadow-sm text-sm border border-red-200 dark:border-red-800">Logout</button>`;
 
-            // ==========================================
-            // ADMIN DASHBOARD VIEW
-            // ==========================================
+            // --- ADMIN APP REVIEW VIEW ---
             } else if (this.viewMode === 'admin_apps') {
                 els.body.innerHTML = `
                     <div class="mb-4 flex flex-col h-full">
@@ -228,39 +295,140 @@ window.userPanelApp = {
                         </div>
                     </div>`;
                 els.footer.innerHTML = ``;
-                
-                // Fetch the live data
                 setTimeout(() => window.loadAdminApplications(), 100);
-            }
 
+            // --- BOOKMARKS VIEW ---
+            } else if (this.viewMode === 'bookmarks') {
+                const bookmarks = Object.values(window.userBookmarks || {}).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                let bookmarksHtml = '';
+                
+                if (bookmarks.length === 0) {
+                    bookmarksHtml = `<div class="flex flex-col items-center justify-center py-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mt-4"><span class="text-5xl mb-4 opacity-70">🔖</span><h4 class="font-bold text-lg text-slate-700 dark:text-slate-300">No Saved Questions Yet</h4><p class="text-sm text-slate-500 mt-2 px-4 leading-relaxed">Questions you bookmark inside the QBank will automatically sync here.</p><button onclick="window.userPanelApp.setView('menu')" class="mt-6 px-6 py-2.5 bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 rounded-lg font-bold text-sm hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors border border-brand-200 dark:border-brand-800">Go Back</button></div>`;
+                } else {
+                    bookmarksHtml = `<div class="space-y-5 mt-4 pb-10">`;
+                    bookmarks.forEach((bm) => {
+                        let formattedText = (bm.text || 'Saved Question').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        let optionsHtml = '';
+                        if (bm.type === 'MCQ' && bm.options) {
+                            optionsHtml = `<div class="mt-4 space-y-2.5">`;
+                            bm.options.forEach((opt, idx) => {
+                                const letter = String.fromCharCode(65 + idx); const isCorrect = bm.ans_key === letter;
+                                let btnClass = "w-full text-left p-3.5 rounded-xl border transition-colors flex items-start gap-3 shadow-sm";
+                                if (isCorrect) btnClass += " bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 text-green-800 dark:text-green-300 font-bold";
+                                else btnClass += " bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400";
+                                let formattedOpt = opt.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                                const letterBadgeClass = isCorrect ? "bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-100 border-green-300 dark:border-green-700" : "bg-white dark:bg-slate-700 text-slate-500 border-slate-200 dark:border-slate-600";
+                                const letterBadge = `<span class="flex-shrink-0 w-7 h-7 rounded-lg ${letterBadgeClass} text-xs font-bold flex items-center justify-center border">${letter}</span>`;
+                                optionsHtml += `<div class="${btnClass}">${letterBadge}<span class="pt-0.5 text-sm font-medium leading-snug">${formattedOpt}</span></div>`;
+                            });
+                            optionsHtml += `</div>`;
+                        }
+
+                        bookmarksHtml += `
+                            <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 relative group transition-all shadow-sm hover:shadow-md">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="text-[10px] text-brand-600 dark:text-brand-400 font-extrabold uppercase tracking-widest bg-brand-50 dark:bg-brand-900/30 px-2.5 py-1 rounded-md border border-brand-200 dark:border-brand-800">${bm.subject || 'QBank'}</div>
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700">${new Date(bm.timestamp).toLocaleDateString()}</span>
+                                </div>
+                                <div class="text-base font-bold text-slate-900 dark:text-white mb-2 leading-relaxed">${formattedText}</div>
+                                ${optionsHtml}
+                                <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center gap-2">
+                                    <button onclick="window.deleteBookmark('${bm.q}')" class="text-[10px] font-bold text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-1.5 uppercase tracking-wide">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Remove
+                                    </button>
+                                    <a href="${bm.url || '#'}" class="text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 hover:bg-brand-100 dark:hover:bg-brand-900/40 px-4 py-2.5 rounded-xl transition-colors border border-brand-200 dark:border-brand-800 flex items-center gap-1.5 shadow-sm">
+                                        Review <span class="text-lg leading-none">➝</span>
+                                    </a>
+                                </div>
+                            </div>`;
+                    });
+                    bookmarksHtml += `</div>`;
+                }
+
+                els.body.innerHTML = `
+                    <div class="mb-2">
+                        <div class="flex items-center justify-between mb-6 sticky top-0 bg-slate-50 dark:bg-dark-bg z-10 py-2 border-b border-slate-200 dark:border-slate-800">
+                            <button onclick="window.userPanelApp.setView('menu')" class="p-2 -ml-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors flex items-center gap-1 font-bold text-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg> Back</button>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Saved Items</h3>
+                        <p class="text-xs text-slate-500 font-medium">Quickly access your difficult questions synced from the cloud.</p>
+                        ${bookmarksHtml}
+                    </div>`;
+                els.footer.innerHTML = ``; 
+
+            // --- EDIT PROFILE VIEW ---
+            } else if (this.viewMode === 'edit_profile') {
+                const currentYear = pData.joinYear || ''; const isS = (v, t) => (v === t) ? 'selected' : '';
+                els.body.innerHTML = `
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-6 sticky top-0 bg-slate-50 dark:bg-dark-bg z-10 py-2 border-b border-slate-200 dark:border-slate-800">
+                            <button onclick="window.userPanelApp.setView('menu')" class="p-2 -ml-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors flex items-center gap-1 font-bold text-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg> Back</button>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Edit Profile</h3>
+                        <div class="space-y-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Full Name</label><input type="text" id="edit-name" value="${pData.fullName || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" /></div>
+                            <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">College Name</label><input type="text" id="edit-college" value="${pData.college || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" /></div>
+                            <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Join Year / Batch</label><select id="edit-join-year" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"><option value="">Select</option><option value="2025 Batch" ${isS(currentYear, '2025 Batch')}>2025 Batch</option><option value="2024 Batch" ${isS(currentYear, '2024 Batch')}>2024 Batch</option><option value="2023 Batch" ${isS(currentYear, '2023 Batch')}>2023 Batch</option><option value="2022 Batch" ${isS(currentYear, '2022 Batch')}>2022 Batch</option><option value="2021 Batch" ${isS(currentYear, '2021 Batch')}>2021 Batch (Intern)</option><option value="Post-Grad / JR" ${isS(currentYear, 'Post-Grad / JR')}>Post-Grad / JR</option></select></div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">City</label><input type="text" id="edit-city" value="${pData.city || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" /></div>
+                                <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Phone</label><input type="tel" id="edit-phone" value="${pData.phone || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" /></div>
+                            </div>
+                            <button onclick="window.saveEditedProfile(this)" class="w-full py-4 mt-6 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 active:scale-95 transition-all">Save Changes</button>
+                        </div>
+                    </div>`;
+                els.footer.innerHTML = ``;
+            }
         } else {
-            // GUEST LOGIN
-            els.body.innerHTML = `
-                <div class="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] pb-4 text-center">
-                    <img src="${APP_LOGO_URL}" class="w-16 h-16 rounded-2xl shadow-xl ring-2 ring-brand-400/50 mb-4 object-cover mt-2">
-                    <h3 class="text-xl font-black mb-1">Global Profile</h3>
-                    <p class="text-sm text-slate-500 mb-6">Log in to sync progress or apply as a contributor.</p>
-                    <button onclick="alert('Firebase Auth Required')" class="w-full py-4 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg">Sign In / Register</button>
-                </div>`;
+            // --- GUEST VIEW (Restored exactly as before) ---
+            if (this.authMode === 'login') {
+                els.body.innerHTML = `
+                    <div class="flex flex-col items-center justify-center min-h-[calc(100vh-250px)]">
+                        <img src="${APP_LOGO_URL}" class="w-20 h-20 rounded-2xl shadow-xl ring-4 ring-offset-4 ring-brand-400/30 mb-6 object-cover" alt="Logo">
+                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Welcome Back</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Log in to sync your progress.</p>
+                        <div id="auth-error-msg" class="hidden w-full bg-red-50 text-red-600 border border-red-200 text-xs p-3 rounded-xl mb-4 text-center font-bold"></div>
+                        <div class="w-full space-y-3 mb-6 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <div class="relative w-full">
+                                <input type="password" id="login-pass" placeholder="Password" class="w-full pl-4 pr-10 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                                <button type="button" onclick="window.togglePassword()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                            </div>
+                            <div class="text-right w-full pt-1"><button onclick="window.handleForgotPass()" class="text-[10px] font-bold text-brand-500 uppercase tracking-wider hover:text-brand-600 transition-colors">Forgot Password?</button></div>
+                        </div>
+                        <button onclick="window.handleEmailLogin(this)" class="w-full py-4 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 active:scale-95 transition-all hover:bg-brand-600">Sign In</button>
+                        <div class="text-center mt-6"><span class="text-sm text-slate-500">Don't have an account?</span> <button onclick="window.toggleAuthMode('register')" class="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline ml-1">Create One</button></div>
+                    </div>`;
+            } else {
+                els.body.innerHTML = `
+                    <div class="flex flex-col items-center justify-start min-h-[calc(100vh-250px)] pb-4">
+                        <img src="${APP_LOGO_URL}" class="w-16 h-16 rounded-2xl shadow-xl ring-2 ring-offset-2 ring-brand-400/50 mb-4 object-cover mt-2" alt="Logo">
+                        <h3 class="text-xl font-black text-slate-900 dark:text-white mb-1">Create Global Profile</h3>
+                        <p class="text-sm text-slate-500 mb-6">Join the community.</p>
+                        <div id="auth-error-msg" class="hidden w-full bg-red-50 text-red-600 border border-red-200 text-xs p-3 rounded-xl mb-4 text-center font-bold"></div>
+                        <div class="w-full space-y-3 mb-6 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <select id="reg-country" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm outline-none focus:ring-2 focus:ring-brand-500 transition-shadow font-medium"><option value="">Select Country</option><option value="India" selected>India</option></select>
+                            <input type="text" id="reg-city" placeholder="City" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <input type="text" id="reg-name" placeholder="Full Name" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <input type="email" id="reg-email" placeholder="Email Address" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <input type="password" id="reg-pass" placeholder="Create Password (Min 6)" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <div class="grid grid-cols-2 gap-3">
+                                <select id="reg-join-year" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm outline-none font-medium focus:ring-2 focus:ring-brand-500 transition-shadow"><option value="">Batch</option><option value="2025 Batch">2025 Batch</option><option value="2024 Batch">2024 Batch</option><option value="2023 Batch">2023 Batch</option><option value="2022 Batch">2022 Batch</option><option value="Intern">Intern</option><option value="JR/SR">JR / SR</option></select>
+                                <input type="text" id="reg-college" placeholder="College Name" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            </div>
+                            <input type="tel" id="reg-phone" placeholder="Phone Number" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                        </div>
+                        <button onclick="window.handleEmailSignUp(this)" class="w-full py-4 rounded-xl text-sm font-bold bg-green-600 text-white shadow-lg shadow-green-600/30 active:scale-95 transition-all hover:bg-green-700">Create Account</button>
+                        <div class="text-center mt-6"><span class="text-sm text-slate-500">Already have an account?</span><button onclick="window.toggleAuthMode('login')" class="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline ml-1">Sign In</button></div>
+                    </div>`;
+            }
             els.footer.innerHTML = legalFooterHtml;
         }
     }
 };
 
 // ==========================================
-// LIVE FIREBASE LOGIC FOR WORKFLOWS
+// FIREBASE APPLICATION DASHBOARD LOGIC
 // ==========================================
-
-// Ensure we have access to Firebase dynamically (Uses your Web SDK v11 global instances)
-async function getFirebaseInstances() {
-    const { getFirestore, doc, updateDoc, collection, query, where, getDocs, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
-    const { getStorage, ref, uploadBytesResumable, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js");
-    const db = getFirestore();
-    const storage = getStorage();
-    return { db, storage, doc, updateDoc, collection, query, where, getDocs, serverTimestamp, ref, uploadBytesResumable, getDownloadURL };
-}
-
-// 1. User Submits Application
 window.submitContributorApplication = async function() {
     const btn = document.getElementById('app-submit-btn');
     const name = document.getElementById('app-name').value;
@@ -274,108 +442,72 @@ window.submitContributorApplication = async function() {
     btn.disabled = true; btn.innerText = "Uploading ID securely...";
     
     try {
-        const fb = await getFirebaseInstances();
+        const { getFirestore, doc, updateDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+        const { getStorage, ref, uploadBytesResumable, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js");
         
-        // Upload ID Card to Storage
+        const db = getFirestore(); const storage = getStorage();
         const fileExt = file.name.split('.').pop();
-        const storageRef = fb.ref(fb.storage, `contributor_ids/${user.uid}_${Date.now()}.${fileExt}`);
-        const uploadTask = await fb.uploadBytesResumable(storageRef, file);
-        const downloadURL = await fb.getDownloadURL(uploadTask.ref);
+        const storageRef = ref(storage, `contributor_ids/${user.uid}_${Date.now()}.${fileExt}`);
+        const uploadTask = await uploadBytesResumable(storageRef, file);
+        const downloadURL = await getDownloadURL(uploadTask.ref);
 
-        btn.innerText = "Updating Profile...";
-
-        // Update Firestore User Document
-        await fb.updateDoc(fb.doc(fb.db, "users", user.uid), {
-            contributorStatus: 'pending',
-            fullName: name,
-            college: college,
-            idCardUrl: downloadURL,
-            applicationDate: fb.serverTimestamp(),
-            rejectionReason: "" // Clear any previous rejections
+        await updateDoc(doc(db, "users", user.uid), {
+            contributorStatus: 'pending', fullName: name, college: college, idCardUrl: downloadURL, applicationDate: serverTimestamp(), rejectionReason: ""
         });
 
-        // Update Local State & UI
         window.currentUserProfileData.contributorStatus = 'pending';
         window.closeContributorModal();
         window.userPanelApp.renderState();
-
     } catch (error) {
-        console.error("Submission Error:", error);
         alert("Failed to submit: " + error.message);
         btn.disabled = false; btn.innerText = "Submit Application";
     }
 };
 
-// 2. Admin Loads the Applications
 window.loadAdminApplications = async function() {
     const container = document.getElementById('admin-apps-container');
     if (!container) return;
-
     try {
-        const fb = await getFirebaseInstances();
-        const q = fb.query(fb.collection(fb.db, "users"), fb.where("contributorStatus", "==", "pending"));
-        const querySnapshot = await fb.getDocs(q);
+        const { getFirestore, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+        const db = getFirestore();
+        const q = query(collection(db, "users"), where("contributorStatus", "==", "pending"));
+        const querySnapshot = await getDocs(q);
         
-        if (querySnapshot.empty) {
-            container.innerHTML = `<div class="text-center p-6 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl">No pending applications.</div>`;
-            return;
-        }
-
+        if (querySnapshot.empty) { container.innerHTML = `<div class="text-center p-6 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl">No pending applications.</div>`; return; }
+        
         let html = '';
-        querySnapshot.forEach((document) => {
-            const data = document.data();
-            html += `
-            <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm mb-3">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-brand-600">${data.college || 'No College'}</span>
-                </div>
-                <h4 class="font-bold text-slate-900 dark:text-white text-sm">${data.fullName || 'No Name'}</h4>
-                <p class="text-xs text-slate-500 mb-4">${data.email}</p>
-                
-                <div class="flex gap-2">
-                    <a href="${data.idCardUrl}" target="_blank" class="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 text-center">View ID</a>
-                    <button onclick="window.adminApprove('${document.id}')" class="flex-1 py-2 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600">Approve</button>
-                    <button onclick="window.adminReject('${document.id}')" class="flex-1 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600">Reject</button>
-                </div>
-            </div>`;
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            html += `<div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm mb-3"><div class="flex justify-between items-start mb-2"><span class="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">${data.college || 'No College'}</span></div><h4 class="font-bold text-slate-900 dark:text-white text-sm">${data.fullName || 'No Name'}</h4><p class="text-xs text-slate-500 mb-4">${data.email}</p><div class="flex gap-2"><a href="${data.idCardUrl}" target="_blank" class="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 text-center">View ID</a><button onclick="window.adminApprove('${doc.id}')" class="flex-1 py-2 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600">Approve</button><button onclick="window.adminReject('${doc.id}')" class="flex-1 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600">Reject</button></div></div>`;
         });
         container.innerHTML = html;
-
-    } catch (error) {
-        console.error("Failed to load apps:", error);
-        container.innerHTML = `<div class="text-center p-4 text-xs font-bold text-red-500">Failed to load from database.</div>`;
-    }
+    } catch (e) { container.innerHTML = `<div class="text-center p-4 text-xs font-bold text-red-500">Failed to load from database.</div>`; }
 };
 
-// 3. Admin Approves Application
 window.adminApprove = async function(uid) {
     if(!confirm("Approve this user? They will gain upload access immediately.")) return;
-    
     try {
-        const fb = await getFirebaseInstances();
-        await fb.updateDoc(fb.doc(fb.db, "users", uid), {
-            contributorStatus: "approved",
-            rejectionReason: ""
-        });
-        window.loadAdminApplications(); // Refresh list
-    } catch (e) {
-        alert("Error approving: " + e.message);
-    }
+        const { getFirestore, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+        await updateDoc(doc(getFirestore(), "users", uid), { contributorStatus: "approved", rejectionReason: "" });
+        window.loadAdminApplications();
+    } catch (e) { alert("Error approving: " + e.message); }
 };
 
-// 4. Admin Rejects Application
 window.adminReject = async function(uid) {
     const reason = prompt("Enter reason for rejection (This will be shown to the user):", "Blurry ID card / Name mismatch");
-    if (!reason) return; // Cancelled
-    
+    if (!reason) return;
     try {
-        const fb = await getFirebaseInstances();
-        await fb.updateDoc(fb.doc(fb.db, "users", uid), {
-            contributorStatus: "rejected",
-            rejectionReason: reason
-        });
-        window.loadAdminApplications(); // Refresh list
-    } catch (e) {
-        alert("Error rejecting: " + e.message);
-    }
+        const { getFirestore, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+        await updateDoc(doc(getFirestore(), "users", uid), { contributorStatus: "rejected", rejectionReason: reason });
+        window.loadAdminApplications();
+    } catch (e) { alert("Error rejecting: " + e.message); }
 };
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then((registration) => { console.log('ServiceWorker registration successful with scope: ', registration.scope); })
+            .catch((error) => { console.log('ServiceWorker registration failed: ', error); });
+    });
+}
