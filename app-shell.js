@@ -114,6 +114,9 @@ document.body.insertAdjacentHTML('afterbegin', appShellHTML);
 // 2. GLOBALS & UI STATE
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
 
+// Admin Emails specific to MBBS Profs Prep
+const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com"];
+
 window.toggleAuthMode = function(mode) { window.userPanelApp.authMode = mode; window.userPanelApp.renderState(); };
 
 window.togglePassword = function() {
@@ -197,13 +200,18 @@ window.userPanelApp = {
     </div>`;
 
         if (user) {
+            // Check if current user is an Admin
+            const isAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
+
             if (this.viewMode === 'menu') {
                 let badgeHtml = ''; let daysHtml = '';
-                if (window.globalUserStatus.isVIP) {
+                if (isAdmin) {
+                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900 text-[10px] font-extrabold rounded-full uppercase tracking-wider">PLATFORM ADMIN</span>`;
+                } else if (window.globalUserStatus && window.globalUserStatus.isVIP) {
                     badgeHtml = `<span class="px-3 py-1 mt-3 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-brand-200 dark:border-brand-800">PRO / VIP ACCESS</span>`;
                     const fd = window.globalUserStatus.validUntil === 'Lifetime Access' ? 'Lifetime Access' : new Date(window.globalUserStatus.validUntil).toLocaleDateString('en-US');
                     daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex flex-col items-center"><span class="text-2xl font-black text-green-600 dark:text-green-400">${window.globalUserStatus.daysLeft === 999 ? '∞' : window.globalUserStatus.daysLeft}</span><span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Days Left</span><span class="text-[10px] font-medium text-slate-400 mt-1">Valid until ${fd}</span></div>`;
-                } else if (window.globalUserStatus.expired) {
+                } else if (window.globalUserStatus && window.globalUserStatus.expired) {
                     const daysAgo = Math.abs(window.globalUserStatus.daysLeft);
                     badgeHtml = `<span class="px-3 py-1 mt-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-red-200 dark:border-red-800">EXPIRED</span>`;
                     daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex flex-col items-center text-center"><span class="text-xs font-bold text-red-600 dark:text-red-400">Oops! Your subscription ended ${daysAgo} days ago.</span><a href="checkout.html" class="mt-2 text-xs font-bold bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-sm">Renew Now</a></div>`;
@@ -213,18 +221,32 @@ window.userPanelApp = {
                 }
 
                 const nameToDisplay = user.displayName || pData.fullName || "User";
-                const initial = user.email.charAt(0).toUpperCase();
+                const initial = (user.email || "U").charAt(0).toUpperCase();
 
                 // --------------------------------------------------------
-                // CONTRIBUTOR LOGIC INJECTED HERE
+                // WORKFLOW STATE MACHINE
                 // --------------------------------------------------------
                 const trustScore = pData.trustScore || 0;
-                const cStatus = pData.contributorStatus || 'none'; // 'none', 'pending', 'approved'
-                const isContributor = trustScore >= 1 || cStatus === 'approved' || window.accessLevel === 'admin';
+                const cStatus = pData.contributorStatus || 'none'; // 'none', 'pending', 'approved', 'rejected'
+                const isContributor = trustScore >= 1 || cStatus === 'approved' || isAdmin;
 
                 let workflowHtml = '';
 
-                if (isContributor) {
+                if (isAdmin) {
+                    // ADMIN VIEW: See Applications
+                    workflowHtml = `
+                    <a onclick="window.userPanelApp.setView('admin_apps')" class="flex items-center justify-between p-4 bg-slate-900 dark:bg-slate-100 rounded-2xl border-none shadow-lg cursor-pointer transition-all group mt-4">
+                        <div class="flex items-center gap-4 text-white dark:text-slate-900 font-semibold text-sm">
+                            <span class="w-10 h-10 rounded-xl bg-white/20 dark:bg-black/10 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">📋</span> 
+                            <div class="flex flex-col">
+                                <span class="font-bold leading-tight">Review Applications</span>
+                                <span class="text-[10px] font-bold opacity-80 mt-0.5 uppercase tracking-wider">Admin Panel</span>
+                            </div>
+                        </div>
+                        <span class="text-white/70 dark:text-black/50 text-xs font-bold bg-white/10 dark:bg-black/5 px-2 py-1 rounded-md">View</span>
+                    </a>`;
+                } else if (isContributor) {
+                    // APPROVED CONTRIBUTOR VIEW
                     workflowHtml = `
                     <a href="upload.html" class="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl border-none shadow-lg hover:shadow-green-500/30 cursor-pointer transition-all group mt-4">
                         <div class="flex items-center gap-4 text-white font-semibold text-sm">
@@ -237,6 +259,7 @@ window.userPanelApp = {
                         <span class="text-white/70 text-xs font-bold bg-black/10 px-2 py-1 rounded-md">Go</span>
                     </a>`;
                 } else if (cStatus === 'pending') {
+                    // PENDING REVIEW VIEW
                     workflowHtml = `
                     <div class="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-800 mt-4 flex gap-3">
                         <div class="text-2xl animate-pulse">⏳</div>
@@ -245,7 +268,22 @@ window.userPanelApp = {
                             <p class="text-[10px] text-amber-600 dark:text-amber-500 mt-1 font-medium leading-relaxed">Our admin team is verifying your College ID. You will unlock the upload portal once approved.</p>
                         </div>
                     </div>`;
+                } else if (cStatus === 'rejected') {
+                    // REJECTED APPLICATION VIEW
+                    const reason = pData.rejectionReason || "Verification failed. Please ensure your College ID is clear and readable.";
+                    workflowHtml = `
+                    <div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-800 mt-4">
+                        <div class="flex gap-3 mb-3">
+                            <div class="text-2xl">❌</div>
+                            <div>
+                                <h4 class="text-sm font-bold text-red-800 dark:text-red-400">Application Rejected</h4>
+                                <p class="text-[10px] text-red-600 dark:text-red-500 mt-1 font-bold bg-white dark:bg-slate-900 p-2 rounded border border-red-100 dark:border-red-800/50">Reason: ${reason}</p>
+                            </div>
+                        </div>
+                        <button onclick="window.openContributorModal()" class="w-full py-2.5 bg-red-600 text-white font-bold text-xs rounded-xl hover:bg-red-700 transition-colors shadow-sm">Fix & Apply Again</button>
+                    </div>`;
                 } else {
+                    // DEFAULT NORMAL USER PITCH
                     workflowHtml = `
                     <div class="bg-gradient-to-br from-brand-600 to-purple-700 rounded-2xl p-5 text-white mt-4 shadow-xl relative overflow-hidden">
                         <div class="relative z-10">
@@ -261,7 +299,7 @@ window.userPanelApp = {
                     </div>`;
                 }
 
-                // Append the original profile UI with the new workflow logic
+                // Render Menu Layout
                 els.body.innerHTML = `
                     <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <div class="w-20 h-20 rounded-full bg-brand-50 dark:bg-slate-800 flex items-center justify-center text-3xl font-bold text-brand-600 dark:text-brand-400 mb-3 shadow-md border border-brand-100 dark:border-slate-700">${initial}</div>
@@ -280,6 +318,52 @@ window.userPanelApp = {
                     </div>`;
                 
                 els.footer.innerHTML = `${legalFooterHtml}<button onclick="window.firebaseSignOut()" class="w-full py-3.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center justify-center gap-2 mt-2 border border-red-200 dark:border-red-800 shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Logout</button>`;
+
+            } else if (this.viewMode === 'admin_apps') {
+                // --------------------------------------------------------
+                // ADMIN APPLICATIONS DASHBOARD (Only Admins see this)
+                // --------------------------------------------------------
+                
+                // Mock Data for UI demonstration. In production, fetch from Firestore `users` where contributorStatus == 'pending'
+                const pendingApps = [
+                    { uid: "mock_1", name: "Rahul Singh", college: "AIIMS Deoghar", email: "rahul@student.aiims.edu" },
+                    { uid: "mock_2", name: "Anjali Gupta", college: "AIIMS Patna", email: "anjali22@gmail.com" }
+                ];
+
+                let appsHtml = '';
+                if(pendingApps.length === 0) {
+                    appsHtml = `<div class="text-center p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800"><p class="text-slate-500 text-sm font-bold">No pending applications.</p></div>`;
+                } else {
+                    pendingApps.forEach(app => {
+                        appsHtml += `
+                        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-4">
+                            <h4 class="font-bold text-sm text-slate-900 dark:text-white">${app.name}</h4>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-3">${app.college} • ${app.email}</p>
+                            
+                            <button class="w-full py-2 mb-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700">📄 View ID Card (PDF/Img)</button>
+                            
+                            <div class="flex gap-2 mb-2">
+                                <button onclick="window.approveApp('${app.uid}')" class="flex-1 py-2 bg-green-50 text-green-600 border border-green-200 text-xs font-bold rounded-lg hover:bg-green-100 transition-colors">Approve</button>
+                            </div>
+                            
+                            <div class="mt-2 p-2 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/50 rounded-lg">
+                                <input type="text" id="reject-reason-${app.uid}" placeholder="Reason for rejection..." class="w-full text-[10px] p-2 rounded border border-red-200 dark:border-red-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none mb-2">
+                                <button onclick="window.rejectApp('${app.uid}')" class="w-full py-1.5 bg-red-600 text-white text-[10px] font-bold rounded hover:bg-red-700 transition-colors uppercase tracking-wider">Reject Application</button>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                els.body.innerHTML = `
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-6 sticky top-0 bg-slate-50 dark:bg-dark-bg z-10 py-2 border-b border-slate-200 dark:border-slate-800">
+                            <button onclick="window.userPanelApp.setView('menu')" class="p-2 -ml-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors flex items-center gap-1 font-bold text-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg> Back</button>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-900 dark:text-white mb-1 flex items-center gap-2">📋 Identity Verification</h3>
+                        <p class="text-xs text-slate-500 font-medium mb-6">Review submitted College IDs to grant Contributor status.</p>
+                        ${appsHtml}
+                    </div>`;
+                els.footer.innerHTML = ``;
 
             } else if (this.viewMode === 'bookmarks') {
                 const bookmarks = Object.values(window.userBookmarks || {}).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -408,7 +492,7 @@ window.userPanelApp = {
 };
 
 // ==========================================
-// CONTRIBUTOR APPLICATION LOGIC
+// CONTRIBUTOR LOGIC & ADMIN MOCK ACTIONS
 // ==========================================
 window.submitContributorApplication = async function() {
     const btn = document.getElementById('app-submit-btn');
@@ -417,29 +501,41 @@ window.submitContributorApplication = async function() {
     const file = document.getElementById('app-id-file').files[0];
 
     if(!file) return alert("Please upload an ID card.");
-    
     btn.disabled = true;
     btn.innerText = "Submitting securely...";
     
-    // Simulate database update for UI testing
+    // Simulate DB Write
     setTimeout(() => {
         window.currentUserProfileData = window.currentUserProfileData || {};
         window.currentUserProfileData.contributorStatus = 'pending';
+        window.currentUserProfileData.rejectionReason = ''; // Clear old reason
         window.closeContributorModal();
-        window.userPanelApp.renderState(); // Refreshes UI to "Under Review" state
+        window.userPanelApp.renderState(); 
         alert("Application Submitted! Our admin team will review your ID card shortly.");
     }, 1500);
+};
+
+// Admin Approve Mock
+window.approveApp = function(uid) {
+    alert("In Production: This will set user doc contributorStatus to 'approved' in Firestore.");
+    // Update local mock state and re-render
+    window.userPanelApp.renderState();
+};
+
+// Admin Reject Mock
+window.rejectApp = function(uid) {
+    const reasonInput = document.getElementById('reject-reason-' + uid);
+    if(!reasonInput || !reasonInput.value.trim()) {
+        return alert("Please enter a reason for rejection.");
+    }
+    alert(`In Production: This will set user doc contributorStatus to 'rejected' with reason: "${reasonInput.value}"`);
+    // Update local mock state and re-render
+    window.userPanelApp.renderState();
 };
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then((registration) => {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            })
-            .catch((error) => {
-                console.log('ServiceWorker registration failed: ', error);
-            });
+        navigator.serviceWorker.register('./sw.js').catch(error => console.log('SW failed: ', error));
     });
 }
