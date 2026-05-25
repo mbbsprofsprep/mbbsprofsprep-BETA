@@ -4,7 +4,7 @@
 
 const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com"];
 
-// 1. INJECT THE NAVBAR & SIDEBAR HTML + CONTRIBUTOR MODAL
+// 1. INJECT THE NAVBAR, SIDEBAR HTML & CONTRIBUTOR MODAL
 const appShellHTML = `
     <nav class="fixed top-0 w-full z-50 border-b border-brand-100 dark:border-slate-800 bg-white/90 dark:bg-dark-bg/95 backdrop-blur-md transition-colors">
         <div class="w-full px-4 md:px-6 py-3 flex justify-between items-center max-w-7xl mx-auto">
@@ -81,7 +81,7 @@ const appShellHTML = `
                     </div>
                 </div>
 
-                <p class="text-xs text-slate-600 dark:text-slate-400 mb-5 font-medium leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-4">To unlock the upload portal, securely verify your student identity below.</p>
+                <p class="text-xs text-slate-600 dark:text-slate-400 mb-5 font-medium leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-4">To unlock the upload portal, securely verify your student identity below. Approval takes 12-24 hours.</p>
                 
                 <form id="contributor-form" onsubmit="event.preventDefault(); window.submitContributorApplication();">
                     <div class="space-y-4">
@@ -113,7 +113,7 @@ const appShellHTML = `
 document.body.insertAdjacentHTML('afterbegin', appShellHTML);
 
 
-// 2. GLOBALS & UI STATE
+// 2. GLOBALS & UI UTILITY FUNCTIONS
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
 
 window.toggleAuthMode = function(mode) { window.userPanelApp.authMode = mode; window.userPanelApp.renderState(); };
@@ -143,7 +143,7 @@ window.toggleTheme = function() {
     const icon = document.getElementById('theme-icon'); 
     if(icon) icon.innerText = d?'☀️':'🌙'; 
     if(window.update3D) window.update3D();
-}
+};
 
 window.openContributorModal = function() {
     document.getElementById('contributor-modal-backdrop').classList.remove('opacity-0', 'pointer-events-none');
@@ -154,6 +154,7 @@ window.closeContributorModal = function() {
     document.getElementById('contributor-modal-backdrop').classList.add('opacity-0', 'pointer-events-none');
     document.getElementById('contributor-modal-card').classList.add('scale-95');
 };
+
 
 // 3. THE MULTI-VIEW USER PANEL APP
 window.userPanelApp = {
@@ -200,6 +201,7 @@ window.userPanelApp = {
             const cStatus = pData.contributorStatus || 'none'; 
             const isContributor = trustScore >= 1 || cStatus === 'approved';
 
+            // --- MENU VIEW (Main Dashboard) ---
             if (this.viewMode === 'menu') {
                 let badgeHtml = ''; let daysHtml = '';
                 if (window.globalUserStatus && window.globalUserStatus.isVIP) {
@@ -218,7 +220,7 @@ window.userPanelApp = {
                 const nameToDisplay = user.displayName || pData.fullName || "User";
                 const initial = (user.email || 'U').charAt(0).toUpperCase();
 
-                // DYNAMIC WORKFLOW HTML FOR MENUS
+                // Dynamic Workflow UI Section
                 let workflowHtml = '';
                 if (isAdmin) {
                     workflowHtml = `
@@ -379,7 +381,7 @@ window.userPanelApp = {
                 els.footer.innerHTML = ``;
             }
         } else {
-            // --- GUEST VIEW (Restored exactly as before) ---
+            // --- GUEST VIEW ---
             if (this.authMode === 'login') {
                 els.body.innerHTML = `
                     <div class="flex flex-col items-center justify-center min-h-[calc(100vh-250px)]">
@@ -391,7 +393,7 @@ window.userPanelApp = {
                             <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
                             <div class="relative w-full">
                                 <input type="password" id="login-pass" placeholder="Password" class="w-full pl-4 pr-10 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
-                                <button type="button" onclick="window.togglePassword()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                                <button type="button" onclick="window.togglePassword()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.059 10.059 0 011.591-2.714M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1.5 1.5l22.5 22.5" /></svg></button>
                             </div>
                             <div class="text-right w-full pt-1"><button onclick="window.handleForgotPass()" class="text-[10px] font-bold text-brand-500 uppercase tracking-wider hover:text-brand-600 transition-colors">Forgot Password?</button></div>
                         </div>
@@ -426,88 +428,174 @@ window.userPanelApp = {
     }
 };
 
-// ==========================================
-// FIREBASE APPLICATION DASHBOARD LOGIC
-// ==========================================
-window.submitContributorApplication = async function() {
-    const btn = document.getElementById('app-submit-btn');
-    const name = document.getElementById('app-name').value;
-    const college = document.getElementById('app-college').value;
-    const file = document.getElementById('app-id-file').files[0];
-    const user = window.currentUserObj;
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW failed: ', e));
+    });
+}
 
-    if(!file) return alert("Please upload an ID card.");
-    if(!user) return alert("Not logged in.");
-    
-    btn.disabled = true; btn.innerText = "Uploading ID securely...";
-    
+// ==========================================
+// 4. FIREBASE AUTH & DATABASE CONNECTION ENGINE (SAFE MERGE)
+// ==========================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDvPdEhkK1VDkuAqIhlSXPL2MXxlv7Mo9c",
+    authDomain: "mbbs-profs-prep48c.firebaseapp.com",
+    projectId: "mbbs-profs-prep48c",
+    storageBucket: "mbbs-profs-prep48c.firebasestorage.app",
+    messagingSenderId: "378639777472",
+    appId: "1:378639777472:web:9c2dcb689d97025f6ff725"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Global State Listener (Does NOT delete old data)
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        window.currentUserObj = user;
+        try {
+            const docSnap = await getDoc(doc(db, "users", user.uid));
+            if (docSnap.exists()) {
+                window.currentUserProfileData = docSnap.data();
+                
+                let sub = { isVIP: false, daysLeft: 0, expired: false };
+                if (window.currentUserProfileData.premiumUntil) {
+                    const exp = new Date(window.currentUserProfileData.premiumUntil);
+                    const today = new Date();
+                    const diff = Math.ceil((exp - today) / 86400000);
+                    if (diff > 0) sub = { isVIP: true, daysLeft: diff, validUntil: window.currentUserProfileData.premiumUntil, expired: false };
+                    else sub = { isVIP: false, daysLeft: diff, expired: true };
+                }
+                window.globalUserStatus = sub;
+                window.accessLevel = sub.isVIP ? 'premium' : 'free';
+                if (ADMIN_EMAILS.includes((user.email || '').toLowerCase())) window.accessLevel = 'admin';
+            } else {
+                // Failsafe for users who deleted their document somehow
+                window.currentUserProfileData = { trustScore: 0, contributorStatus: 'none', uploadsCount: 0 };
+                window.globalUserStatus = { isVIP: false, daysLeft: 0 };
+                window.accessLevel = 'free';
+            }
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            window.currentUserProfileData = { trustScore: 0, contributorStatus: 'none' };
+        }
+
+        if(window.userPanelApp && window.userPanelApp.isOpen) window.userPanelApp.renderState();
+        if(typeof window.processDataForAccess === 'function' && window.isDataLoaded) window.processDataForAccess();
+    } else {
+        window.currentUserObj = null; window.currentUserProfileData = null;
+        window.globalUserStatus = { isVIP: false, daysLeft: 0 }; window.accessLevel = 'guest';
+        if(window.userPanelApp && window.userPanelApp.isOpen) window.userPanelApp.renderState();
+        if(typeof window.processDataForAccess === 'function' && window.isDataLoaded) window.processDataForAccess();
+    }
+});
+
+// Login
+window.handleEmailLogin = async function(btn) {
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if(!email || !pass) return window.showAuthError("Please fill all fields.");
+    btn.disabled = true; btn.innerText = "Authenticating...";
     try {
-        const { getFirestore, doc, updateDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
-        const { getStorage, ref, uploadBytesResumable, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js");
-        
-        const db = getFirestore(); const storage = getStorage();
-        const fileExt = file.name.split('.').pop();
-        const storageRef = ref(storage, `contributor_ids/${user.uid}_${Date.now()}.${fileExt}`);
-        const uploadTask = await uploadBytesResumable(storageRef, file);
-        const downloadURL = await getDownloadURL(uploadTask.ref);
-
-        await updateDoc(doc(db, "users", user.uid), {
-            contributorStatus: 'pending', fullName: name, college: college, idCardUrl: downloadURL, applicationDate: serverTimestamp(), rejectionReason: ""
-        });
-
-        window.currentUserProfileData.contributorStatus = 'pending';
-        window.closeContributorModal();
-        window.userPanelApp.renderState();
+        await signInWithEmailAndPassword(auth, email, pass);
+        btn.innerText = "Success!"; setTimeout(() => window.userPanelApp.setView('menu'), 800);
     } catch (error) {
-        alert("Failed to submit: " + error.message);
-        btn.disabled = false; btn.innerText = "Submit Application";
+        btn.disabled = false; btn.innerText = "Sign In";
+        window.showAuthError(error.message.replace("Firebase: ", ""));
     }
 };
 
+// Register (Uses setDoc without overwriting existing by accident)
+window.handleEmailSignUp = async function(btn) {
+    const email = document.getElementById('reg-email').value.trim();
+    const pass = document.getElementById('reg-pass').value;
+    if(!email || !pass || pass.length < 6) return window.showAuthError("Valid email and 6+ char password required.");
+    btn.disabled = true; btn.innerText = "Creating Profile...";
+    try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await setDoc(doc(db, "users", cred.user.uid), {
+            uid: cred.user.uid, email: email, fullName: document.getElementById('reg-name').value.trim(),
+            college: document.getElementById('reg-college').value.trim(), joinYear: document.getElementById('reg-join-year').value,
+            city: document.getElementById('reg-city').value.trim(), phone: document.getElementById('reg-phone').value.trim(),
+            role: "member", trustScore: 0, uploadsCount: 0, contributorStatus: "none", createdAt: serverTimestamp()
+        });
+        btn.innerText = "Welcome!"; setTimeout(() => window.userPanelApp.setView('menu'), 800);
+    } catch (error) {
+        btn.disabled = false; btn.innerText = "Create Account"; window.showAuthError(error.message.replace("Firebase: ", ""));
+    }
+};
+
+// Logout
+window.firebaseSignOut = async function() { try { await signOut(auth); window.userPanelApp.setView('menu'); } catch(e){} };
+
+// Edit Profile (Uses merge: true to save old data)
+window.saveEditedProfile = async function(btn) {
+    if (!window.currentUserObj) return;
+    const name = document.getElementById('edit-name').value.trim(), college = document.getElementById('edit-college').value.trim();
+    const batch = document.getElementById('edit-join-year').value, city = document.getElementById('edit-city').value.trim(), phone = document.getElementById('edit-phone').value.trim();
+    btn.disabled = true; btn.innerText = "Saving...";
+    try {
+        await setDoc(doc(db, "users", window.currentUserObj.uid), { fullName: name, college: college, joinYear: batch, city: city, phone: phone, lastUpdated: serverTimestamp() }, { merge: true });
+        Object.assign(window.currentUserProfileData, { fullName: name, college: college, joinYear: batch, city: city, phone: phone });
+        btn.innerText = "Saved!"; setTimeout(() => window.userPanelApp.setView('menu'), 800);
+    } catch (error) { btn.disabled = false; btn.innerText = "Save Changes"; alert("Failed to save."); }
+};
+
+// Contributor Form Submission (Uses updateDoc)
+window.submitContributorApplication = async function() {
+    const btn = document.getElementById('app-submit-btn');
+    const name = document.getElementById('app-name').value, college = document.getElementById('app-college').value, file = document.getElementById('app-id-file').files[0];
+    const user = window.currentUserObj;
+    if(!file || !user) return alert("File and login required.");
+    
+    btn.disabled = true; btn.innerText = "Uploading securely...";
+    try {
+        const fileExt = file.name.split('.').pop();
+        const storageRef = ref(storage, `contributor_ids/${user.uid}_${Date.now()}.${fileExt}`);
+        const uploadTask = await uploadBytesResumable(storageRef, file);
+        const url = await getDownloadURL(uploadTask.ref);
+
+        await updateDoc(doc(db, "users", user.uid), { contributorStatus: 'pending', idCardName: name, idCardCollege: college, idCardUrl: url, applicationDate: serverTimestamp(), rejectionReason: "" });
+        window.currentUserProfileData.contributorStatus = 'pending';
+        window.closeContributorModal(); window.userPanelApp.renderState();
+    } catch (e) { alert("Failed: " + e.message); btn.disabled = false; btn.innerText = "Submit Application"; }
+};
+
+// Admin Fetch (Only fetches pending applications)
 window.loadAdminApplications = async function() {
     const container = document.getElementById('admin-apps-container');
     if (!container) return;
     try {
-        const { getFirestore, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
-        const db = getFirestore();
         const q = query(collection(db, "users"), where("contributorStatus", "==", "pending"));
-        const querySnapshot = await getDocs(q);
-        
-        if (querySnapshot.empty) { container.innerHTML = `<div class="text-center p-6 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl">No pending applications.</div>`; return; }
+        const snap = await getDocs(q);
+        if (snap.empty) { container.innerHTML = `<div class="text-center p-6 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl">No pending applications.</div>`; return; }
         
         let html = '';
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            html += `<div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm mb-3"><div class="flex justify-between items-start mb-2"><span class="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">${data.college || 'No College'}</span></div><h4 class="font-bold text-slate-900 dark:text-white text-sm">${data.fullName || 'No Name'}</h4><p class="text-xs text-slate-500 mb-4">${data.email}</p><div class="flex gap-2"><a href="${data.idCardUrl}" target="_blank" class="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 text-center">View ID</a><button onclick="window.adminApprove('${doc.id}')" class="flex-1 py-2 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600">Approve</button><button onclick="window.adminReject('${doc.id}')" class="flex-1 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600">Reject</button></div></div>`;
+        snap.forEach((doc) => {
+            const d = doc.data();
+            html += `<div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm mb-3"><div class="flex justify-between items-start mb-2"><span class="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">${d.idCardCollege || d.college || 'No College'}</span></div><h4 class="font-bold text-slate-900 dark:text-white text-sm">${d.idCardName || d.fullName || 'No Name'}</h4><p class="text-xs text-slate-500 mb-4">${d.email}</p><div class="flex gap-2"><a href="${d.idCardUrl}" target="_blank" class="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 text-center">View ID</a><button onclick="window.adminApprove('${doc.id}')" class="flex-1 py-2 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600">Approve</button></div><div class="mt-2 p-2 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/50 rounded-lg"><input type="text" id="reject-reason-${doc.id}" placeholder="Reason for rejection..." class="w-full text-[10px] p-2 rounded border border-red-200 dark:border-red-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none mb-2"><button onclick="window.adminReject('${doc.id}')" class="w-full py-1.5 bg-red-600 text-white text-[10px] font-bold rounded hover:bg-red-700 uppercase">Reject</button></div></div>`;
         });
         container.innerHTML = html;
     } catch (e) { container.innerHTML = `<div class="text-center p-4 text-xs font-bold text-red-500">Failed to load from database.</div>`; }
 };
 
+// Admin Approve/Reject (Updates specific fields safely)
 window.adminApprove = async function(uid) {
-    if(!confirm("Approve this user? They will gain upload access immediately.")) return;
-    try {
-        const { getFirestore, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
-        await updateDoc(doc(getFirestore(), "users", uid), { contributorStatus: "approved", rejectionReason: "" });
-        window.loadAdminApplications();
-    } catch (e) { alert("Error approving: " + e.message); }
+    if(!confirm("Approve this user?")) return;
+    try { await updateDoc(doc(db, "users", uid), { contributorStatus: "approved", rejectionReason: "" }); window.loadAdminApplications(); } 
+    catch (e) { alert("Error: " + e.message); }
 };
-
 window.adminReject = async function(uid) {
-    const reason = prompt("Enter reason for rejection (This will be shown to the user):", "Blurry ID card / Name mismatch");
-    if (!reason) return;
-    try {
-        const { getFirestore, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
-        await updateDoc(doc(getFirestore(), "users", uid), { contributorStatus: "rejected", rejectionReason: reason });
-        window.loadAdminApplications();
-    } catch (e) { alert("Error rejecting: " + e.message); }
+    const reason = document.getElementById('reject-reason-' + uid)?.value.trim();
+    if (!reason) return alert("Enter reason.");
+    try { await updateDoc(doc(db, "users", uid), { contributorStatus: "rejected", rejectionReason: reason }); window.loadAdminApplications(); } 
+    catch (e) { alert("Error: " + e.message); }
 };
-
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then((registration) => { console.log('ServiceWorker registration successful with scope: ', registration.scope); })
-            .catch((error) => { console.log('ServiceWorker registration failed: ', error); });
-    });
-}
