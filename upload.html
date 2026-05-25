@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributor Portal - MBBS Profs Prep</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class', 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        brand: { 50:'#f0f9ff', 100:'#e0f2fe', 200:'#bae6fd', 400:'#3395ff', 500:'#0ea5e9', 600:'#0284c7', 900:'#0c4a6e' }, 
+                        dark: { bg: '#020617', surface: '#0f172a', border: '#1e293b' } 
+                    }, 
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } 
+                } 
+            } 
+        }
+    </script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        body { background-color: #f0f9ff; color: #0f172a; transition: background-color 0.3s ease, color 0.3s ease; }
+        html.dark body { background-color: #020617 !important; color: #f8fafc !important; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid #e0f2fe; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        html.dark .glass-card { background: rgba(15, 23, 42, 0.9); border: 1px solid #1e293b; color: #f1f5f9; }
+        
+        #drop-zone.dragover { background-color: #e0f2fe; border-color: #0ea5e9; }
+        html.dark #drop-zone.dragover { background-color: rgba(14, 165, 233, 0.2); border-color: #0ea5e9; }
+    </style>
+</head>
+<body class="bg-brand-50 dark:bg-dark-bg transition-colors duration-300 relative flex flex-col min-h-screen">
+
+    <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');</script>
+
+    <script src="app-shell.js"></script>
+
+    <div class="w-full px-4 pt-28 pb-12 max-w-3xl mx-auto flex-1">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-brand-600 dark:text-brand-400 tracking-tight mb-2">Contributor Portal</h1>
+            <p class="mt-3 text-md text-slate-500 dark:text-slate-400">Securely submit exam papers for verification and database integration.</p>
+        </header>
+
+        <div id="auth-guard" class="hidden glass-card rounded-2xl p-10 text-center">
+            <div class="w-20 h-20 bg-brand-100 dark:bg-brand-900/30 text-brand-500 rounded-full flex items-center justify-center text-4xl mb-4 mx-auto shadow-inner border border-brand-200 dark:border-brand-800">🔒</div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Authentication Required</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-6 font-medium">You must be signed in to contribute exam papers and earn Trust Score points.</p>
+            <button onclick="window.userPanelApp.open(); window.toggleAuthMode('login')" class="px-10 py-4 bg-brand-500 text-white font-bold rounded-xl shadow-lg border-none hover:bg-brand-600 transition-colors">Sign In to Contribute</button>
+        </div>
+
+        <div id="upload-form-container" class="hidden glass-card rounded-2xl p-6 md:p-8">
+            <form id="upload-form" onsubmit="event.preventDefault(); window.handleSubmission();">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Institution</label>
+                        <select id="doc-college" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500 transition-shadow">
+                            <option value="">Select College</option>
+                            <option value="AIIMS Deoghar">AIIMS Deoghar</option>
+                            <option value="AIIMS Delhi">AIIMS Delhi</option>
+                            <option value="AIIMS Kalyani">AIIMS Kalyani</option>
+                            </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Subject</label>
+                        <select id="doc-subject" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500 transition-shadow">
+                            <option value="">Select Subject</option>
+                            <option value="Anatomy">Anatomy</option>
+                            <option value="Physiology">Physiology</option>
+                            <option value="Biochemistry">Biochemistry</option>
+                            <option value="Pathology">Pathology</option>
+                            <option value="Pharmacology">Pharmacology</option>
+                            <option value="Microbiology">Microbiology</option>
+                            <option value="Surgery">Surgery</option>
+                            <option value="Medicine">Medicine</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Exam Batch</label>
+                        <input type="text" id="doc-batch" placeholder="e.g., 2025 Batch Prof I" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Paper Type</label>
+                        <select id="doc-type" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500 transition-shadow">
+                            <option value="Main Prof Exam">Main Professional Exam</option>
+                            <option value="Supplementary Exam">Supplementary Exam</option>
+                            <option value="Pre-Prof Exam">Pre-Prof / Terminal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload Document (PDF or Image)</label>
+                    <div id="drop-zone" class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-8 text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors relative" onclick="document.getElementById('file-input').click()">
+                        <input type="file" id="file-input" class="hidden" accept=".pdf, image/jpeg, image/png" onchange="window.handleFileSelect(event)">
+                        <div class="text-4xl mb-3">📄</div>
+                        <p class="text-sm font-bold text-slate-700 dark:text-slate-300" id="file-name-display">Click to browse or drag file here</p>
+                        <p class="text-xs text-slate-400 mt-1">Accepts .PDF, .JPG, .PNG (Max 15MB)</p>
+                    </div>
+                </div>
+
+                <div id="upload-progress-container" class="hidden mb-6">
+                    <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                        <span id="upload-status-text">Uploading...</span>
+                        <span id="upload-percent">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                        <div class="bg-brand-500 h-2 rounded-full transition-all duration-300" id="upload-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full py-4 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 active:scale-95 transition-all hover:bg-brand-600">Submit for Verification</button>
+            </form>
+        </div>
+
+        <div id="success-state" class="hidden glass-card rounded-2xl p-10 text-center border-green-200 dark:border-green-800">
+            <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center text-4xl mb-4 mx-auto shadow-inner border border-green-200 dark:border-green-800">✅</div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Upload Successful</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-6 font-medium">Your paper has been sent to the verification queue. Once an admin approves it and extracts the questions, your Trust Score will increase.</p>
+            <button onclick="window.location.reload()" class="px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Submit Another</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvPdEhkK1VDkuAqIhlSXPL2MXxlv7Mo9c",
+            authDomain: "mbbs-profs-prep48c.firebaseapp.com",
+            projectId: "mbbs-profs-prep48c",
+            storageBucket: "mbbs-profs-prep48c.firebasestorage.app",
+            messagingSenderId: "378639777472",
+            appId: "1:378639777472:web:9c2dcb689d97025f6ff725"
+        };
+        
+        const fbApp = initializeApp(firebaseConfig);
+        const auth = getAuth(fbApp);
+        const db = getFirestore(fbApp);
+        const storage = getStorage(fbApp);
+
+        let selectedFile = null;
+
+        // UI State Management
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('auth-guard').classList.add('hidden');
+                document.getElementById('upload-form-container').classList.remove('hidden');
+            } else {
+                document.getElementById('auth-guard').classList.remove('hidden');
+                document.getElementById('upload-form-container').classList.add('hidden');
+            }
+        });
+
+        // File Selection Logic
+        window.handleFileSelect = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 15 * 1024 * 1024) {
+                alert("File is too large. Maximum size is 15MB.");
+                event.target.value = '';
+                return;
+            }
+            selectedFile = file;
+            document.getElementById('file-name-display').innerText = file.name;
+            document.getElementById('drop-zone').classList.add('border-brand-500', 'bg-brand-50', 'dark:bg-brand-900/10');
+        };
+
+        // Drag and Drop Logic
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                document.getElementById('file-input').files = e.dataTransfer.files;
+                window.handleFileSelect({ target: document.getElementById('file-input') });
+            }
+        });
+
+        // Main Upload Workflow
+        window.handleSubmission = async function() {
+            if (!selectedFile) return alert("Please select a document to upload.");
+            
+            const user = auth.currentUser;
+            if (!user) return alert("You must be logged in.");
+
+            const college = document.getElementById('doc-college').value;
+            const subject = document.getElementById('doc-subject').value;
+            const batch = document.getElementById('doc-batch').value.trim();
+            const paperType = document.getElementById('doc-type').value;
+
+            if (!college || !subject || !batch) return alert("Please fill all metadata fields.");
+
+            // UI Prep
+            const submitBtn = document.getElementById('submit-btn');
+            const progressContainer = document.getElementById('upload-progress-container');
+            const progressBar = document.getElementById('upload-progress-bar');
+            const percentText = document.getElementById('upload-percent');
+            const statusText = document.getElementById('upload-status-text');
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Processing...";
+            progressContainer.classList.remove('hidden');
+
+            // 1. Create secure storage path: pending_uploads/AIIMS_Deoghar/Anatomy/16839201.pdf
+            const cleanCollege = college.replace(/\s+/g, '_');
+            const fileExtension = selectedFile.name.split('.').pop();
+            const fileName = `${subject}_${batch}_${Date.now()}.${fileExtension}`.replace(/\s+/g, '_');
+            const storagePath = `pending_uploads/${cleanCollege}/${fileName}`;
+
+            const storageRef = ref(storage, storagePath);
+            const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+            // 2. Execute Upload
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressBar.style.width = progress + '%';
+                    percentText.innerText = Math.round(progress) + '%';
+                }, 
+                (error) => {
+                    console.error("Upload failed:", error);
+                    alert("Upload failed: " + error.message);
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Submit for Verification";
+                    progressContainer.classList.add('hidden');
+                }, 
+                async () => {
+                    // 3. Upload Complete -> Get URL
+                    statusText.innerText = "Securing database entry...";
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+                    // 4. Write to Firestore `uploads` collection
+                    try {
+                        await addDoc(collection(db, "uploads"), {
+                            uploaderId: user.uid,
+                            uploaderEmail: user.email,
+                            college: college,
+                            subject: subject,
+                            examBatch: batch,
+                            paperType: paperType,
+                            fileURL: downloadURL,
+                            originalFileName: selectedFile.name,
+                            status: "pending",
+                            submittedAt: serverTimestamp()
+                        });
+
+                        // 5. Show Success State
+                        document.getElementById('upload-form-container').classList.add('hidden');
+                        document.getElementById('success-state').classList.remove('hidden');
+
+                    } catch (dbError) {
+                        console.error("Database error:", dbError);
+                        alert("File uploaded, but database entry failed. Please contact admin.");
+                    }
+                }
+            );
+        };
+    </script>
+</body>
+</html>
