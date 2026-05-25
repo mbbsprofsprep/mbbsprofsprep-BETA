@@ -1,5 +1,5 @@
 // ==========================================
-// app-shell.js - Centralized UI Component
+// app-shell.js - Centralized UI Component & Auth State Machine
 // ==========================================
 
 // 1. INJECT THE NAVBAR, SIDEBAR & MODALS HTML
@@ -46,12 +46,40 @@ const appShellHTML = `
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-brand-50 dark:bg-slate-800/50">
                 <div>
                     <h3 class="font-black text-lg text-brand-600 dark:text-brand-400">Contributor Application</h3>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Identity Verification</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Milestones & Identity Verification</p>
                 </div>
                 <button onclick="window.closeContributorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
             <div class="p-6 overflow-y-auto custom-scrollbar">
-                <p class="text-xs text-slate-600 dark:text-slate-400 mb-5 font-medium leading-relaxed">To maintain platform quality and prevent spam, you must verify your student identity before uploading past papers. Approval takes 12-24 hours.</p>
+                
+                <div class="mb-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">What You Can Earn</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-lg shrink-0 border border-green-200 dark:border-green-800">⭐</div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-none">Contributor <span class="text-[10px] text-slate-500 font-bold ml-1 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">1 Paper</span></p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Earn <span class="text-green-600 dark:text-green-400 font-bold">30 Days</span> of Premium Access per approved paper.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-lg shrink-0 border border-blue-200 dark:border-blue-800">🛡️</div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-none">Verified <span class="text-[10px] text-slate-500 font-bold ml-1 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">3 Papers</span></p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Unlock <span class="text-blue-600 dark:text-blue-400 font-bold">6 Months</span> of Premium & a Verified Profile Badge.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-lg shrink-0 border border-purple-200 dark:border-purple-800">👑</div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-none">Campus Lead <span class="text-[10px] text-slate-500 font-bold ml-1 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">10 Papers</span></p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Unlock <span class="text-purple-600 dark:text-purple-400 font-bold">Permanent VIP Access</span> & Leadership Status.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-600 dark:text-slate-400 mb-5 font-medium leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-4">To unlock the upload portal and start earning perks, securely verify your student identity below. Approval takes 12-24 hours.</p>
                 
                 <form id="contributor-form" onsubmit="event.preventDefault(); window.submitContributorApplication();">
                     <div class="space-y-4">
@@ -72,7 +100,7 @@ const appShellHTML = `
                             </div>
                         </div>
                     </div>
-                    <button type="submit" id="app-submit-btn" class="w-full py-3.5 mt-6 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 transition-colors">Submit Application</button>
+                    <button type="submit" id="app-submit-btn" class="w-full py-4 mt-6 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 transition-all active:scale-95 uppercase tracking-wider">Submit Application</button>
                 </form>
             </div>
         </div>
@@ -188,7 +216,7 @@ window.userPanelApp = {
                 const initial = user.email.charAt(0).toUpperCase();
 
                 // --------------------------------------------------------
-                // NEW CONTRIBUTOR LOGIC INJECTED HERE
+                // CONTRIBUTOR LOGIC INJECTED HERE
                 // --------------------------------------------------------
                 const trustScore = pData.trustScore || 0;
                 const cStatus = pData.contributorStatus || 'none'; // 'none', 'pending', 'approved'
@@ -222,12 +250,12 @@ window.userPanelApp = {
                     <div class="bg-gradient-to-br from-brand-600 to-purple-700 rounded-2xl p-5 text-white mt-4 shadow-xl relative overflow-hidden">
                         <div class="relative z-10">
                             <h4 class="font-black text-lg mb-1 shadow-sm">Become a Contributor</h4>
-                            <p class="text-xs text-brand-100 font-medium mb-4">Help the community grow and earn permanent perks.</p>
+                            <p class="text-xs text-brand-100 font-medium mb-4 leading-relaxed">Help the community grow and earn permanent platform perks.</p>
                             <ul class="text-xs space-y-2 mb-5 font-bold">
                                 <li class="flex items-center gap-2"><span class="bg-white/20 p-1 rounded-md text-[10px]">✨</span> Free Premium Access</li>
-                                <li class="flex items-center gap-2"><span class="bg-white/20 p-1 rounded-md text-[10px]">🛡️</span> Verified Badge</li>
+                                <li class="flex items-center gap-2"><span class="bg-white/20 p-1 rounded-md text-[10px]">🛡️</span> Verified Profile Badge</li>
                             </ul>
-                            <button onclick="window.openContributorModal()" class="w-full py-3 bg-white text-brand-700 font-black rounded-xl hover:scale-[1.02] transition-transform shadow-lg">Apply for Access</button>
+                            <button onclick="window.openContributorModal()" class="w-full py-3 bg-white text-brand-700 font-black rounded-xl hover:scale-[1.02] transition-transform shadow-lg">View Perks & Apply</button>
                         </div>
                         <div class="absolute -right-6 -bottom-6 text-8xl opacity-10 blur-sm">🎁</div>
                     </div>`;
