@@ -100,6 +100,9 @@ document.body.insertAdjacentHTML('afterbegin', appShellHTML);
 // 2. GLOBALS & UI STATE
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
 
+// Admin Emails
+const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com", "pankajmahto109@gmail.com"];
+
 window.toggleAuthMode = function(mode) { window.userPanelApp.authMode = mode; window.userPanelApp.renderState(); };
 
 window.togglePassword = function() {
@@ -131,12 +134,23 @@ window.toggleTheme = function() {
 
 window.openContributorModal = function() {
     const user = window.currentUserObj;
+    const pData = window.currentUserProfileData || {};
+    
     if(user) {
-        // REPLACE THIS URL WITH YOUR GOOGLE FORM 1 (Application/ID Form) URL
-        const form1URL = `https://docs.google.com/forms/d/e/YOUR_FORM_1_ID/viewform?entry.12345=${encodeURIComponent(user.email)}`;
+        // FORM 1: Contributor Application
+        const form1BaseURL = "https://docs.google.com/forms/d/e/1FAIpQLSfstQfZ78-2gNqn8d1EzvUkpY-q79VJWuWKyrooBtvypc4bhA/viewform";
+        
+        // Build the URL with the exact entry IDs you provided
+        const emailParam = `entry.1623437545=${encodeURIComponent(user.email)}`;
+        const nameParam = `entry.1736014869=${encodeURIComponent(pData.fullName || '')}`;
+        const collegeParam = `entry.631447334=${encodeURIComponent(pData.college || '')}`;
+        
+        const finalURL = `${form1BaseURL}?${emailParam}&${nameParam}&${collegeParam}`;
+        
         const btn = document.getElementById('app-google-form-btn');
-        if(btn) btn.href = form1URL;
+        if(btn) btn.href = finalURL;
     }
+    
     const bd = document.getElementById('contributor-modal-backdrop');
     const cd = document.getElementById('contributor-modal-card');
     if(bd) bd.classList.remove('opacity-0', 'pointer-events-none');
