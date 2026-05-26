@@ -105,11 +105,13 @@ const appShellHTML = `
 // Insert the HTML directly into the page exactly at the start of the <body>
 document.body.insertAdjacentHTML('afterbegin', appShellHTML);
 
-// 2. GLOBALS & UI STATE
+// ==========================================
+// GLOBALS & UI STATE
+// ==========================================
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
 
-// Webhook URL (Replace with your Google Apps Script URL later)
-const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; 
+// Webhook URL (Connected to your live Google Sheet)
+const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxejY5ol02zKLaItmB3qCWM8d3XG4A0rHcn4RrzUlkKGS5bGT78YdAaosBlnmWkFtyC/exec"; 
 
 // Admin Emails
 const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com", "pankajmahto109@gmail.com"];
@@ -429,15 +431,11 @@ window.userPanelApp = {
 };
 
 // ==========================================
-// CONTRIBUTOR APPLICATION (NATIVE WEBHOOK)
-// ==========================================
 window.submitContributorApplication = async function() {
     const btn = document.getElementById('app-submit-btn');
     const name = document.getElementById('app-name').value;
-    const examDate = document.getElementById('app-next-exam').value;
-    const idLink = document.getElementById('app-id-link').value; // Collecting Drive link to avoid file upload complexity in Apps Script
+    const idLink = document.getElementById('app-id-link').value;
 
-    if(!examDate) return alert("Please select your next exam date.");
     if(!idLink) return alert("Please provide a link to your ID card.");
     
     btn.disabled = true;
@@ -449,28 +447,24 @@ window.submitContributorApplication = async function() {
             name: name,
             email: window.currentUserObj ? window.currentUserObj.email : "unknown",
             college: window.currentUserProfileData.college || "unknown",
-            examDate: examDate,
             idCardUrl: idLink
         };
 
-        // 2. Send to Google Apps Script Webhook (Uncomment and replace URL when ready)
-        /*
+        // 2. Send to Google Apps Script Webhook
         await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
             method: "POST",
             mode: "no-cors",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         });
-        */
 
-        // 3. Update Firebase Profile (Simulated for UI currently)
+        // 3. Update Firebase Profile (Simulated for UI)
         window.currentUserProfileData.contributorStatus = 'pending';
-        window.currentUserProfileData.nextExamDate = examDate;
         
         // 4. Clean up UI
         window.closeContributorModal();
         window.userPanelApp.renderState(); 
-        alert("Application Submitted successfully!");
+        alert("Application Submitted successfully! We will review your ID shortly.");
 
     } catch (error) {
         console.error(error);
