@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Contributor - MBBS Profs Prep</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class', 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        brand: { 50:'#f0f9ff', 100:'#e0f2fe', 200:'#bae6fd', 400:'#3395ff', 500:'#0ea5e9', 600:'#0284c7', 900:'#0c4a6e' }, 
+                        dark: { bg: '#020617', surface: '#0f172a', border: '#1e293b' } 
+                    }, 
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } 
+                } 
+            } 
+        }
+    </script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        body { background-color: #f0f9ff; color: #0f172a; transition: background-color 0.3s ease, color 0.3s ease; }
+        html.dark body { background-color: #020617 !important; color: #f8fafc !important; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid #e0f2fe; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        html.dark .glass-card { background: rgba(15, 23, 42, 0.9); border: 1px solid #1e293b; color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-brand-50 dark:bg-dark-bg transition-colors duration-300 flex flex-col min-h-screen">
+
+    <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');</script>
+
+    <script src="app-shell.js"></script>
+
+    <div class="w-full px-4 pt-28 pb-12 max-w-2xl mx-auto flex-1 flex flex-col justify-center">
+        
+        <div id="auth-guard" class="hidden glass-card rounded-2xl p-10 text-center">
+            <div class="w-20 h-20 bg-brand-100 dark:bg-brand-900/30 text-brand-500 rounded-full flex items-center justify-center text-4xl mb-4 mx-auto border border-brand-200 dark:border-brand-800">🔒</div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Authentication Required</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-6 font-medium">You must be signed in to apply for the Contributor program.</p>
+            <button onclick="window.userPanelApp.open(); window.toggleAuthMode('login')" class="px-10 py-4 bg-brand-500 text-white font-bold rounded-xl shadow-lg hover:bg-brand-600 transition-colors">Sign In Now</button>
+        </div>
+
+        <div id="application-container" class="hidden glass-card rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 text-[10px] font-black px-4 py-1.5 rounded-bl-xl rounded-tr-2xl tracking-widest uppercase">AIIMS Exclusive</div>
+            
+            <h2 class="text-3xl font-black text-brand-600 dark:text-brand-400 mb-2 mt-2">Contributor Application</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 font-medium leading-relaxed">Join the global intelligence network. Verify your identity below to unlock the upload portal, earn Trust Score points, and claim permanent VIP access.</p>
+
+            <form id="apply-form" onsubmit="event.preventDefault(); window.submitStandaloneApplication();">
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Full Legal Name</label>
+                        <input type="text" id="stand-name" required placeholder="As per your College ID" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Your Medical College</label>
+                        <input type="text" id="stand-college" required readonly placeholder="Loading from profile..." class="w-full px-4 py-3.5 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed">
+                        <p class="text-[10px] text-slate-400 mt-1 font-bold">Auto-filled from your registered profile.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Google Drive Link to ID Card</label>
+                        <input type="url" id="stand-id-link" required placeholder="https://drive.google.com/file/d/..." class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+                        <p class="text-[10px] text-brand-500 font-bold mt-1 tracking-wide">⚠️ CRITICAL: Ensure the Drive link sharing is set to "Anyone with the link".</p>
+                    </div>
+                </div>
+
+                <button type="submit" id="stand-submit-btn" class="w-full py-4 mt-8 rounded-xl text-sm font-black bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/30 hover:scale-[1.02] active:scale-95 transition-all tracking-wider uppercase">Submit Application</button>
+            </form>
+        </div>
+
+        <div id="success-state" class="hidden glass-card rounded-2xl p-10 text-center border-green-200 dark:border-green-800 mt-8">
+            <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center text-4xl mb-4 mx-auto border border-green-200 dark:border-green-800 shadow-inner">✅</div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Application Received</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-6 font-medium">Your request has been securely sent to our admin team via Google Sheets. Approval usually takes 12-24 hours.</p>
+            <button onclick="window.location.href='index.html'" class="px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 shadow-sm">Return Home</button>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvPdEhkK1VDkuAqIhlSXPL2MXxlv7Mo9c",
+            authDomain: "mbbs-profs-prep48c.firebaseapp.com",
+            projectId: "mbbs-profs-prep48c",
+            storageBucket: "mbbs-profs-prep48c.firebasestorage.app",
+            messagingSenderId: "378639777472",
+            appId: "1:378639777472:web:9c2dcb689d97025f6ff725"
+        };
+        
+        const fbApp = initializeApp(firebaseConfig);
+        const auth = getAuth(fbApp);
+        const db = getFirestore(fbApp);
+
+        // Your exact webhook URL
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxejY5ol02zKLaItmB3qCWM8d3XG4A0rHcn4RrzUlkKGS5bGT78YdAaosBlnmWkFtyC/exec";
+        
+        let localUser = null;
+        let localProfile = null;
+
+        // 1. Authenticate and populate data
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById('auth-guard').classList.add('hidden');
+                document.getElementById('application-container').classList.remove('hidden');
+                localUser = user;
+
+                // Fetch their actual college from Firestore
+                try {
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    if (docSnap.exists()) {
+                        localProfile = docSnap.data();
+                        document.getElementById('stand-name').value = localProfile.fullName || '';
+                        document.getElementById('stand-college').value = localProfile.college || 'AIIMS';
+                        
+                        // Prevent re-application if already pending/approved
+                        if(localProfile.contributorStatus === 'pending' || localProfile.contributorStatus === 'approved') {
+                            document.getElementById('application-container').innerHTML = `
+                                <div class="text-center py-8">
+                                    <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">You have already applied.</h3>
+                                    <p class="text-sm text-slate-500">Current Status: <span class="font-bold text-brand-500 uppercase">${localProfile.contributorStatus}</span></p>
+                                    <button onclick="window.location.href='index.html'" class="mt-6 px-6 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg font-bold">Go Back</button>
+                                </div>
+                            `;
+                        }
+                    }
+                } catch(e) { console.error("Could not fetch profile", e); }
+                
+            } else {
+                document.getElementById('auth-guard').classList.remove('hidden');
+                document.getElementById('application-container').classList.add('hidden');
+            }
+        });
+
+        // 2. Submit to Webhook
+        window.submitStandaloneApplication = async function() {
+            const btn = document.getElementById('stand-submit-btn');
+            const name = document.getElementById('stand-name').value;
+            const college = document.getElementById('stand-college').value;
+            const idLink = document.getElementById('stand-id-link').value;
+
+            if(!localUser) return alert("Authentication error. Please refresh.");
+
+            btn.disabled = true;
+            btn.innerText = "Transmitting to Admin...";
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            const payload = {
+                name: name,
+                email: localUser.email,
+                college: college,
+                idCardUrl: idLink
+            };
+
+            try {
+                // Send to Google Sheets
+                await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                // Update Firebase so the UI locks them out of applying again
+                await updateDoc(doc(db, "users", localUser.uid), {
+                    contributorStatus: 'pending'
+                });
+
+                // Show Success
+                document.getElementById('application-container').classList.add('hidden');
+                document.getElementById('success-state').classList.remove('hidden');
+
+                // Update global state if app-shell is active
+                if(window.currentUserProfileData) {
+                    window.currentUserProfileData.contributorStatus = 'pending';
+                }
+
+            } catch (error) {
+                console.error("Submission failed:", error);
+                alert("Submission failed. Please check your internet connection and try again.");
+                btn.disabled = false;
+                btn.innerText = "Submit Application";
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        };
+    </script>
+</body>
+</html>
