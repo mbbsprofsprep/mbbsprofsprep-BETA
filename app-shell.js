@@ -69,6 +69,13 @@ const appShellHTML = `
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Unlock <span class="text-blue-600 dark:text-blue-400 font-bold">6 Months</span> & Profile Badge.</p>
                             </div>
                         </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-lg shrink-0 border border-purple-200 dark:border-purple-800">👑</div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-none">Campus Lead <span class="text-[10px] text-slate-500 font-bold ml-1 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">10 Papers</span></p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Unlock <span class="text-purple-600 dark:text-purple-400 font-bold">Permanent VIP Access</span> & Leadership Status.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -81,7 +88,7 @@ const appShellHTML = `
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Date of your next Prof Exam</label>
                             <input type="date" id="app-next-exam" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
-                            <p class="text-[9px] text-brand-600 dark:text-brand-400 font-bold mt-1">⚠️ You must upload papers within 7 days of this date.</p>
+                            <p class="text-[9px] text-brand-600 dark:text-brand-400 font-bold mt-1">⚠️ You must upload papers within 7 days of this date to avoid strikes.</p>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Upload College ID Card (Image/PDF)</label>
@@ -99,25 +106,50 @@ const appShellHTML = `
     </div>
 `;
 
-// Insert the HTML exactly at the start of the body
 document.body.insertAdjacentHTML('afterbegin', appShellHTML);
 
 // 2. GLOBALS & UI STATE
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
 
 // Admin Emails
-const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com"];
+const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com", "pankajmahto109@gmail.com"];
 
 window.toggleAuthMode = function(mode) { window.userPanelApp.authMode = mode; window.userPanelApp.renderState(); };
-window.togglePassword = function() { /* Standard password toggle logic omitted for brevity, keep yours */ };
-window.showAuthError = function(msg) { /* Keep yours */ };
-window.toggleTheme = function() { /* Keep yours */ };
+
+window.togglePassword = function() {
+    const input = document.getElementById('login-pass') || document.getElementById('reg-pass');
+    const icon = document.getElementById('eye-icon');
+    if (!input) return;
+    if (input.type === "password") {
+        input.type = "text";
+        if(icon) icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.059 10.059 0 011.591-2.714M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1.5 1.5l22.5 22.5" />`;
+    } else {
+        input.type = "password";
+        if(icon) icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+    }
+};
+
+window.showAuthError = function(msg) {
+    const errDiv = document.getElementById('auth-error-msg');
+    if(errDiv) { errDiv.innerText = msg; errDiv.classList.remove('hidden'); setTimeout(() => errDiv.classList.add('hidden'), 5000); } 
+    else { alert(msg); }
+};
+
+window.toggleTheme = function() {
+    const d = document.documentElement.classList.toggle('dark'); 
+    localStorage.setItem('theme', d?'dark':'light');
+    const icon = document.getElementById('theme-icon'); 
+    if(icon) icon.innerText = d?'☀️':'🌙'; 
+    if(window.update3D) window.update3D();
+};
+
 window.openContributorModal = function() {
     const bd = document.getElementById('contributor-modal-backdrop');
     const cd = document.getElementById('contributor-modal-card');
     if(bd) bd.classList.remove('opacity-0', 'pointer-events-none');
     if(cd) cd.classList.remove('scale-95');
 };
+
 window.closeContributorModal = function() {
     const bd = document.getElementById('contributor-modal-backdrop');
     const cd = document.getElementById('contributor-modal-card');
@@ -128,43 +160,80 @@ window.closeContributorModal = function() {
 // 3. THE MULTI-VIEW USER PANEL APP
 window.userPanelApp = {
     isOpen: false, authMode: 'login', viewMode: 'menu', 
-    els: function() { return { drawer: document.getElementById('user-panel-drawer'), backdrop: document.getElementById('user-panel-backdrop'), body: document.getElementById('user-panel-body'), footer: document.getElementById('user-panel-footer') } },
+    
+    els: function() { 
+        return { drawer: document.getElementById('user-panel-drawer'), backdrop: document.getElementById('user-panel-backdrop'), body: document.getElementById('user-panel-body'), footer: document.getElementById('user-panel-footer') }
+    },
+    
     toggle: function() { this.isOpen ? this.close() : this.open(); },
-    open: function() { this.isOpen = true; this.viewMode = 'menu'; this.renderState(); const e = this.els(); if(e.drawer) e.drawer.classList.remove('-translate-x-full'); if(e.backdrop) e.backdrop.classList.remove('opacity-0', 'pointer-events-none'); },
-    close: function() { this.isOpen = false; const e = this.els(); if(e.drawer) e.drawer.classList.add('-translate-x-full'); if(e.backdrop) e.backdrop.classList.add('opacity-0', 'pointer-events-none'); },
+    
+    open: function() { 
+        this.isOpen = true; this.viewMode = 'menu'; this.renderState(); 
+        const e = this.els();
+        if(e.drawer) e.drawer.classList.remove('-translate-x-full'); 
+        if(e.backdrop) e.backdrop.classList.remove('opacity-0', 'pointer-events-none'); 
+    },
+    
+    close: function() { 
+        this.isOpen = false; 
+        const e = this.els();
+        if(e.drawer) e.drawer.classList.add('-translate-x-full'); 
+        if(e.backdrop) e.backdrop.classList.add('opacity-0', 'pointer-events-none'); 
+    },
+    
     setView: function(view) { this.viewMode = view; this.renderState(); },
     
     renderState: function() {
-        const user = window.currentUserObj; const pData = window.currentUserProfileData || {};
+        const user = window.currentUserObj; 
+        const pData = window.currentUserProfileData || {};
         const els = this.els(); if(!els.body || !els.footer) return;
-        const legalFooterHtml = `<div class="flex justify-center gap-3 text-[10px] font-bold text-slate-400 mt-4"><a href="#">Terms</a> • <a href="#">Privacy</a></div>`;
+        
+        const legalFooterHtml = `
+            <div class="flex flex-wrap justify-center gap-x-3 gap-y-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide w-full px-2 mb-2 mt-4">
+                <a href="legal.html?page=about" class="hover:text-brand-500 transition-colors">About Us</a> • 
+                <a href="legal.html?page=contact" class="hover:text-brand-500 transition-colors">Contact</a> • 
+                <a href="legal.html?page=terms" class="hover:text-brand-500 transition-colors">Terms</a> • 
+                <a href="legal.html?page=privacy" class="hover:text-brand-500 transition-colors">Privacy</a>
+            </div>`;
 
         if (user) {
             const isAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
             if (this.viewMode === 'menu') {
+                let badgeHtml = ''; let daysHtml = '';
+                
+                if (isAdmin) {
+                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900 text-[10px] font-extrabold rounded-full uppercase tracking-wider">PLATFORM ADMIN</span>`;
+                } else if (window.globalUserStatus && window.globalUserStatus.isVIP) {
+                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-brand-200 dark:border-brand-800">PRO / VIP ACCESS</span>`;
+                    const fd = window.globalUserStatus.validUntil === 'Lifetime Access' ? 'Lifetime Access' : new Date(window.globalUserStatus.validUntil).toLocaleDateString('en-US');
+                    daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex flex-col items-center"><span class="text-2xl font-black text-green-600 dark:text-green-400">${window.globalUserStatus.daysLeft === 999 ? '∞' : window.globalUserStatus.daysLeft}</span><span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Days Left</span><span class="text-[10px] font-medium text-slate-400 mt-1">Valid until ${fd}</span></div>`;
+                } else if (window.globalUserStatus && window.globalUserStatus.expired) {
+                    const daysAgo = Math.abs(window.globalUserStatus.daysLeft);
+                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-red-200 dark:border-red-800">EXPIRED</span>`;
+                    daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex flex-col items-center text-center"><span class="text-xs font-bold text-red-600 dark:text-red-400">Oops! Your subscription ended ${daysAgo} days ago.</span><a href="checkout.html" class="mt-2 text-xs font-bold bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-sm">Renew Now</a></div>`;
+                } else {
+                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-slate-300 dark:border-slate-700">FREE PLAN</span>`;
+                    daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex flex-col items-center text-center"><span class="text-xs font-bold text-blue-600 dark:text-blue-400">Membership Required</span><a href="checkout.html" class="mt-2 text-xs font-bold bg-brand-500 text-white px-3 py-1.5 rounded-lg shadow-sm hover:bg-brand-600">Unlock QBank</a></div>`;
+                }
+
                 const nameToDisplay = user.displayName || pData.fullName || "User";
                 const initial = (user.email || "U").charAt(0).toUpperCase();
 
-                // --------------------------------------------------------
                 // THE EXCLUSIVITY FILTER (AIIMS ONLY)
-                // --------------------------------------------------------
                 const userCollege = (pData.college || '').toUpperCase();
                 const isAIIMS = userCollege.includes('AIIMS'); 
 
                 const trustScore = pData.trustScore || 0;
                 const cStatus = pData.contributorStatus || 'none'; 
                 const isContributor = trustScore >= 1 || cStatus === 'approved' || isAdmin;
-
-                // Simulate Seat Check (In production, this queries Firestore college_seats collection)
-                const seatsAvailable = true; // Assume true for MVP until DB logic is wired
+                const seatsAvailable = true; // Assume true for UI. In prod, fetch from DB.
 
                 let workflowHtml = '';
 
                 if (isAdmin) {
-                    workflowHtml = `<a onclick="window.userPanelApp.setView('admin_apps')" class="flex items-center justify-between p-4 bg-slate-900 dark:bg-slate-100 rounded-2xl cursor-pointer group mt-4"><div class="text-white dark:text-slate-900 font-semibold text-sm">📋 Review Applications</div><span class="text-xs bg-white/10 dark:bg-black/5 px-2 py-1 rounded-md">View</span></a>`;
+                    workflowHtml = `<a onclick="window.location.href='admin.html'" class="flex items-center justify-between p-4 bg-slate-900 dark:bg-slate-100 rounded-2xl cursor-pointer group mt-4"><div class="flex items-center gap-3 text-white dark:text-slate-900 font-semibold text-sm"><span class="text-xl">📋</span><div class="flex flex-col"><span class="font-bold leading-tight">Admin Dashboard</span><span class="text-[10px] font-bold opacity-80 uppercase tracking-wider">Rewards & Extractors</span></div></div><span class="text-xs bg-white/10 dark:bg-black/5 px-2 py-1 rounded-md text-white dark:text-black">Open</span></a>`;
                 } else if (isAIIMS) {
-                    // ONLY RENDER IF THEY ARE FROM AIIMS
                     if (isContributor) {
                         const googleFormLink = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?entry.YOUR_EMAIL_ID=" + encodeURIComponent(user.email);
                         workflowHtml = `<a href="${googleFormLink}" target="_blank" class="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl shadow-lg cursor-pointer group mt-4"><div class="flex items-center gap-3 text-white"><span class="text-xl">📤</span><div class="flex flex-col"><span class="text-sm font-bold">Upload Qs Paper</span><span class="text-[10px] opacity-80">+ Earn Trust Score</span></div></div><span class="text-xs bg-black/10 px-2 py-1 rounded-md text-white font-bold">Go</span></a>`;
@@ -172,42 +241,127 @@ window.userPanelApp = {
                         workflowHtml = `<div class="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-800 mt-4 flex gap-3"><div class="text-2xl animate-pulse">⏳</div><div><h4 class="text-sm font-bold text-amber-800 dark:text-amber-400">Application Under Review</h4><p class="text-[10px] text-amber-600 dark:text-amber-500 mt-1 font-medium">Verifying your College ID.</p></div></div>`;
                     } else if (cStatus === 'rejected') {
                         const reason = pData.rejectionReason || "Verification failed. Please ensure your College ID is clear.";
-                        workflowHtml = `<div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 mt-4"><h4 class="text-sm font-bold text-red-800 dark:text-red-400 mb-1">❌ Application Rejected</h4><p class="text-[10px] text-red-600 font-bold bg-white p-2 rounded mb-3">Reason: ${reason}</p><button onclick="window.openContributorModal()" class="w-full py-2 bg-red-600 text-white font-bold text-xs rounded-xl">Fix & Apply Again</button></div>`;
+                        workflowHtml = `<div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-900/50 mt-4"><h4 class="text-sm font-bold text-red-800 dark:text-red-400 mb-1">❌ Application Rejected</h4><p class="text-[10px] text-red-600 font-bold bg-white dark:bg-slate-900 p-2 rounded mb-3">Reason: ${reason}</p><button onclick="window.openContributorModal()" class="w-full py-2 bg-red-600 text-white font-bold text-xs rounded-xl">Fix & Apply Again</button></div>`;
+                    } else if (cStatus === 'fired') {
+                        workflowHtml = `<div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-900/50 mt-4 text-center"><h4 class="text-sm font-bold text-red-800 dark:text-red-400 mb-1">🚨 Access Revoked</h4><p class="text-[10px] text-red-600 font-bold bg-white dark:bg-slate-900 p-2 rounded">Reason: You received 3 Strikes.</p></div>`;
                     } else if (seatsAvailable) {
-                        workflowHtml = `<div class="bg-gradient-to-br from-brand-600 to-purple-700 rounded-2xl p-5 text-white mt-4 shadow-xl"><h4 class="font-black text-lg mb-1">Become a Contributor</h4><p class="text-xs text-brand-100 mb-4">Earn permanent perks for your college.</p><button onclick="window.openContributorModal()" class="w-full py-3 bg-white text-brand-700 font-black rounded-xl hover:scale-[1.02] transition-transform">Apply Now</button></div>`;
+                        workflowHtml = `<div class="bg-gradient-to-br from-brand-600 to-purple-700 rounded-2xl p-5 text-white mt-4 shadow-xl"><h4 class="font-black text-lg mb-1">Become a Contributor</h4><p class="text-xs text-brand-100 mb-4">Earn permanent perks for your college.</p><button onclick="window.openContributorModal()" class="w-full py-3 bg-white text-brand-700 font-black rounded-xl hover:scale-[1.02] transition-transform shadow-lg shadow-black/20">Apply Now</button></div>`;
                     } else {
                         workflowHtml = `<div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 mt-4 text-center"><span class="text-xl mb-1 block">🔒</span><h4 class="text-sm font-bold text-slate-800 dark:text-white">Seats Full</h4><p class="text-[10px] text-slate-500 mt-1 font-medium">All 20 contributor seats for your batch are currently occupied. Check back later.</p></div>`;
                     }
                 }
-                // IF NOT AIIMS: workflowHtml remains empty. They see nothing.
 
-                // Render Menu Layout (Basic links omitted for brevity but remain identical)
                 els.body.innerHTML = `
-                    <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="w-20 h-20 rounded-full bg-brand-50 flex items-center justify-center text-3xl font-bold text-brand-600 mb-2">${initial}</div>
+                    <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="w-20 h-20 rounded-full bg-brand-50 dark:bg-slate-800 flex items-center justify-center text-3xl font-bold text-brand-600 dark:text-brand-400 mb-3 shadow-md border border-brand-100 dark:border-slate-700">${initial}</div>
                         <h3 class="font-bold text-slate-900 dark:text-white text-center w-full truncate px-2 text-sm">${nameToDisplay}</h3>
-                        <p class="text-[10px] font-bold text-brand-500 uppercase tracking-widest bg-brand-50 px-2 py-1 rounded mt-1">${userCollege || 'Unknown College'}</p>
+                        <p class="text-xs text-slate-500 truncate w-full text-center mt-1">${user.email}</p>
+                        ${badgeHtml}
+                        ${daysHtml}
                     </div>
+                    
                     ${workflowHtml}
-                    `;
-                els.footer.innerHTML = `<button onclick="window.firebaseSignOut()" class="w-full py-3 mt-4 rounded-xl bg-red-50 text-red-600 font-bold border border-red-200 text-sm">Logout</button>`;
-            
-            } else if (this.viewMode === 'admin_apps') { /* Keep Admin Apps view from previous response */ }
+
+                    <div class="flex flex-col gap-3 mt-4">
+                        <a onclick="window.userPanelApp.setView('edit_profile')" class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-700 cursor-pointer transition-all shadow-sm hover:shadow group"><div class="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold text-sm"><span class="w-10 h-10 rounded-xl bg-brand-50 dark:bg-slate-800 flex items-center justify-center text-brand-500 text-xl group-hover:scale-110 transition-transform">👤</span> My Profile</div><span class="text-slate-400 text-xs">❯</span></a>
+                        <a onclick="window.userPanelApp.setView('bookmarks')" class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-accent-yellow/50 cursor-pointer transition-all shadow-sm hover:shadow group"><div class="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold text-sm"><span class="w-10 h-10 rounded-xl bg-accent-yellow/10 dark:bg-slate-800 flex items-center justify-center text-accent-yellow text-xl group-hover:scale-110 transition-transform">🔖</span> Bookmarks & Saved</div><span class="text-slate-400 text-xs">❯</span></a>
+                        <a href="checkout.html" class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 cursor-pointer transition-all shadow-sm hover:shadow group"><div class="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold text-sm"><span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-slate-800 flex items-center justify-center text-purple-500 text-xl group-hover:scale-110 transition-transform">💳</span> Subscription & Billing</div><span class="text-slate-400 text-xs">❯</span></a>
+                    </div>`;
+                
+                els.footer.innerHTML = `${legalFooterHtml}<button onclick="window.firebaseSignOut()" class="w-full py-3.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center justify-center gap-2 mt-2 border border-red-200 dark:border-red-800 shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Logout</button>`;
+
+            } else if (this.viewMode === 'bookmarks') {
+                const bookmarks = Object.values(window.userBookmarks || {}).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                let bookmarksHtml = '';
+                
+                if (bookmarks.length === 0) {
+                    bookmarksHtml = `<div class="flex flex-col items-center justify-center py-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mt-4"><span class="text-5xl mb-4 opacity-70">🔖</span><h4 class="font-bold text-lg text-slate-700 dark:text-slate-300">No Saved Questions Yet</h4><p class="text-sm text-slate-500 mt-2 px-4 leading-relaxed">Questions you bookmark inside the QBank will automatically sync here.</p><button onclick="window.userPanelApp.setView('menu')" class="mt-6 px-6 py-2.5 bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 rounded-lg font-bold text-sm hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors border border-brand-200 dark:border-brand-800">Go Back</button></div>`;
+                } else {
+                    bookmarksHtml = `<div class="space-y-5 mt-4 pb-10">`;
+                    bookmarks.forEach((bm) => {
+                        let formattedText = (bm.text || 'Saved Question').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        let optionsHtml = '';
+                        if (bm.type === 'MCQ' && bm.options) {
+                            optionsHtml = `<div class="mt-4 space-y-2.5">`;
+                            bm.options.forEach((opt, idx) => {
+                                const letter = String.fromCharCode(65 + idx); const isCorrect = bm.ans_key === letter;
+                                let btnClass = "w-full text-left p-3.5 rounded-xl border transition-colors flex items-start gap-3 shadow-sm";
+                                if (isCorrect) btnClass += " bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 text-green-800 dark:text-green-300 font-bold";
+                                else btnClass += " bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400";
+                                let formattedOpt = opt.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                                const letterBadgeClass = isCorrect ? "bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-100 border-green-300 dark:border-green-700" : "bg-white dark:bg-slate-700 text-slate-500 border-slate-200 dark:border-slate-600";
+                                const letterBadge = `<span class="flex-shrink-0 w-7 h-7 rounded-lg ${letterBadgeClass} text-xs font-bold flex items-center justify-center border">${letter}</span>`;
+                                optionsHtml += `<div class="${btnClass}">${letterBadge}<span class="pt-0.5 text-sm font-medium leading-snug">${formattedOpt}</span></div>`;
+                            });
+                            optionsHtml += `</div>`;
+                        }
+
+                        bookmarksHtml += `
+                            <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 relative group transition-all shadow-sm hover:shadow-md">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="text-[10px] text-brand-600 dark:text-brand-400 font-extrabold uppercase tracking-widest bg-brand-50 dark:bg-brand-900/30 px-2.5 py-1 rounded-md border border-brand-200 dark:border-brand-800">${bm.subject || 'QBank'}</div>
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700">${new Date(bm.timestamp).toLocaleDateString()}</span>
+                                </div>
+                                <div class="text-base font-bold text-slate-900 dark:text-white mb-2 leading-relaxed">${formattedText}</div>
+                                ${optionsHtml}
+                                <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center gap-2">
+                                    <button onclick="window.deleteBookmark('${bm.q}')" class="text-[10px] font-bold text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-1.5 uppercase tracking-wide">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Remove
+                                    </button>
+                                    <a href="${bm.url || '#'}" class="text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 hover:bg-brand-100 dark:hover:bg-brand-900/40 px-4 py-2.5 rounded-xl transition-colors border border-brand-200 dark:border-brand-800 flex items-center gap-1.5 shadow-sm">
+                                        Review <span class="text-lg leading-none">➝</span>
+                                    </a>
+                                </div>
+                            </div>`;
+                    });
+                    bookmarksHtml += `</div>`;
+                }
+
+                els.body.innerHTML = `
+                    <div class="mb-2">
+                        <div class="flex items-center justify-between mb-6 sticky top-0 bg-slate-50 dark:bg-dark-bg z-10 py-2 border-b border-slate-200 dark:border-slate-800">
+                            <button onclick="window.userPanelApp.setView('menu')" class="p-2 -ml-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors flex items-center gap-1 font-bold text-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg> Back</button>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Saved Items</h3>
+                        <p class="text-xs text-slate-500 font-medium">Quickly access your difficult questions synced from the cloud.</p>
+                        ${bookmarksHtml}
+                    </div>`;
+                els.footer.innerHTML = ``; 
+
+            } else if (this.viewMode === 'edit_profile') {
+                const currentYear = pData.joinYear || ''; const isS = (v, t) => (v === t) ? 'selected' : '';
+                els.body.innerHTML = `
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-6 sticky top-0 bg-slate-50 dark:bg-dark-bg z-10 py-2 border-b border-slate-200 dark:border-slate-800">
+                            <button onclick="window.userPanelApp.setView('menu')" class="p-2 -ml-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors flex items-center gap-1 font-bold text-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg> Back</button>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Edit Profile</h3>
+                        <div class="space-y-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Full Name</label><input type="text" id="edit-name" value="${pData.fullName || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" /></div>
+                            <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">College Name</label><input type="text" id="edit-college" value="${pData.college || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" disabled /></div>
+                            <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Join Year / Batch</label><input type="text" id="edit-join-year" value="${pData.joinYear || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" disabled /></div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">City</label><input type="text" id="edit-city" value="${pData.city || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" /></div>
+                                <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Phone</label><input type="tel" id="edit-phone" value="${pData.phone || ''}" class="w-full mt-1 px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" /></div>
+                            </div>
+                            <button onclick="window.saveEditedProfile(this)" class="w-full py-4 mt-6 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 active:scale-95 transition-all">Save Changes</button>
+                        </div>
+                    </div>`;
+                els.footer.innerHTML = ``;
+            }
         } else {
-            // GUEST VIEW: 
-            // --------------------------------------------------------
-            // STRICT DROPDOWN REGISTRATION FORM
-            // --------------------------------------------------------
+            // GUEST VIEW (Strict College Dropdown restored)
             if (this.authMode === 'register') {
                 els.body.innerHTML = `
                     <div class="flex flex-col items-center justify-start min-h-[calc(100vh-250px)] pb-4">
                         <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6">Create Profile</h3>
-                        <div class="w-full space-y-3 mb-6 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 shadow-sm">
-                            <input type="text" id="reg-name" placeholder="Full Name" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm" />
-                            <input type="email" id="reg-email" placeholder="Email Address" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm" />
-                            <input type="password" id="reg-pass" placeholder="Password (Min 6)" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm" />
+                        <div id="auth-error-msg" class="hidden w-full bg-red-50 text-red-600 border border-red-200 text-xs p-3 rounded-xl mb-4 text-center font-bold"></div>
+                        <div class="w-full space-y-3 mb-6 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <input type="text" id="reg-name" placeholder="Full Name" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white focus:ring-2 focus:ring-brand-500" />
+                            <input type="email" id="reg-email" placeholder="Email Address" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white focus:ring-2 focus:ring-brand-500" />
+                            <input type="password" id="reg-pass" placeholder="Password (Min 6)" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-sm dark:text-white focus:ring-2 focus:ring-brand-500" />
                             
-                            <select id="reg-college" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-sm outline-none focus:ring-2 focus:ring-brand-500">
+                            <select id="reg-college" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm outline-none focus:ring-2 focus:ring-brand-500 font-medium">
                                 <option value="">Select Your College</option>
                                 <optgroup label="AIIMS Institutes">
                                     <option value="AIIMS Deoghar">AIIMS Deoghar</option>
@@ -218,26 +372,58 @@ window.userPanelApp = {
                                     <option value="AIIMS Jodhpur">AIIMS Jodhpur</option>
                                     <option value="AIIMS Raipur">AIIMS Raipur</option>
                                     <option value="AIIMS Rishikesh">AIIMS Rishikesh</option>
-                                    </optgroup>
-                                <optgroup label="Other Colleges">
+                                    <option value="AIIMS Nagpur">AIIMS Nagpur</option>
+                                    <option value="AIIMS Mangalagiri">AIIMS Mangalagiri</option>
+                                    <option value="AIIMS Gorakhpur">AIIMS Gorakhpur</option>
+                                    <option value="AIIMS Kalyani">AIIMS Kalyani</option>
+                                    <option value="AIIMS Bathinda">AIIMS Bathinda</option>
+                                    <option value="AIIMS Guwahati">AIIMS Gorakhpur</option>
+                                    <option value="AIIMS Vijaypur">AIIMS Vijaypur</option>
+                                    <option value="AIIMS Bilaspur">AIIMS Bathinda</option>
+                                    <option value="AIIMS Madurai">AIIMS Gorakhpur</option>
+                                    <option value="AIIMS Rajkot">AIIMS Vijaypur</option>
+                                    <option value="AIIMS Bibinagar">AIIMS Bathinda</option>
+                                </optgroup>
+                                <optgroup label="Other Medical Colleges">
                                     <option value="JIPMER Puducherry">JIPMER Puducherry</option>
                                     <option value="AFMC Pune">AFMC Pune</option>
+                                    <option value="KMC Manipal">KMC Manipal</option>
                                     <option value="Other">Other Medical College</option>
                                 </optgroup>
                             </select>
                             
-                            <select id="reg-join-year" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-sm outline-none">
+                            <select id="reg-join-year" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm outline-none focus:ring-2 focus:ring-brand-500 font-medium">
                                 <option value="">Select Batch</option>
                                 <option value="2025 Batch">2025 Batch</option>
                                 <option value="2024 Batch">2024 Batch</option>
                                 <option value="2023 Batch">2023 Batch</option>
+                                <option value="2022 Batch">2022 Batch</option>
+                                <option value="2021 Batch">2021 Batch</option>
                             </select>
                         </div>
-                        <button onclick="window.handleEmailSignUp(this)" class="w-full py-4 rounded-xl text-sm font-bold bg-green-600 text-white shadow-lg hover:bg-green-700">Create Account</button>
+                        <button onclick="window.handleEmailSignUp(this)" class="w-full py-4 rounded-xl text-sm font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-colors">Create Account</button>
+                        <div class="text-center mt-6"><span class="text-sm text-slate-500">Already have an account?</span><button onclick="window.toggleAuthMode('login')" class="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline ml-1">Sign In</button></div>
                     </div>`;
             } else {
-                // Render standard login form...
+                els.body.innerHTML = `
+                    <div class="flex flex-col items-center justify-center min-h-[calc(100vh-250px)]">
+                        <img src="${APP_LOGO_URL}" class="w-20 h-20 rounded-2xl shadow-xl ring-4 ring-offset-4 ring-brand-400/30 mb-6 object-cover" alt="Logo">
+                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Welcome Back</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Log in to sync your progress.</p>
+                        <div id="auth-error-msg" class="hidden w-full bg-red-50 text-red-600 border border-red-200 text-xs p-3 rounded-xl mb-4 text-center font-bold"></div>
+                        <div class="w-full space-y-3 mb-6 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                            <div class="relative w-full">
+                                <input type="password" id="login-pass" placeholder="Password" class="w-full pl-4 pr-10 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
+                                <button type="button" onclick="window.togglePassword()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                            </div>
+                            <div class="text-right w-full pt-1"><button onclick="window.handleForgotPass()" class="text-[10px] font-bold text-brand-500 uppercase tracking-wider hover:text-brand-600 transition-colors">Forgot Password?</button></div>
+                        </div>
+                        <button onclick="window.handleEmailLogin(this)" class="w-full py-4 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 active:scale-95 transition-all hover:bg-brand-600">Sign In</button>
+                        <div class="text-center mt-6"><span class="text-sm text-slate-500">Don't have an account?</span> <button onclick="window.toggleAuthMode('register')" class="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline ml-1">Create One</button></div>
+                    </div>`;
             }
+            els.footer.innerHTML = legalFooterHtml;
         }
     }
 };
@@ -245,12 +431,11 @@ window.userPanelApp = {
 window.submitContributorApplication = async function() {
     const btn = document.getElementById('app-submit-btn');
     const examDate = document.getElementById('app-next-exam').value;
-    
     if(!examDate) return alert("Please select your next exam date.");
     
-    btn.disabled = true;
-    btn.innerText = "Submitting securely...";
+    btn.disabled = true; btn.innerText = "Submitting securely...";
     
+    // UI Simulation (In Prod, this pushes to Firestore)
     setTimeout(() => {
         window.currentUserProfileData.contributorStatus = 'pending';
         window.currentUserProfileData.nextExamDate = examDate;
@@ -259,3 +444,7 @@ window.submitContributorApplication = async function() {
         alert("Application Submitted! Your exam schedule has been logged.");
     }, 1500);
 };
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW failed: ', e)));
+}
