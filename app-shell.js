@@ -46,7 +46,7 @@ const appShellHTML = `
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-brand-50 dark:bg-slate-800/50">
                 <div>
                     <h3 class="font-black text-lg text-brand-600 dark:text-brand-400">Contributor Application</h3>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Identity & Schedule</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Stage 1: Identity Verification</p>
                 </div>
                 <button onclick="window.closeContributorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
@@ -79,40 +79,26 @@ const appShellHTML = `
                     </div>
                 </div>
                 
-                <form id="contributor-form" onsubmit="event.preventDefault(); window.submitContributorApplication();">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Full Legal Name</label>
-                            <input type="text" id="app-name" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Date of your next Prof Exam</label>
-                            <input type="date" id="app-next-exam" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
-                            <p class="text-[9px] text-brand-600 dark:text-brand-400 font-bold mt-1">⚠️ You must upload papers within 7 days of this date to avoid strikes.</p>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Upload College ID Card (Image/PDF)</label>
-                            <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors" onclick="document.getElementById('app-id-file').click()">
-                                <input type="file" id="app-id-file" required accept="image/*,.pdf" class="hidden" onchange="document.getElementById('id-filename').innerText = this.files[0]?.name || 'Click to browse'">
-                                <span class="text-2xl mb-1 block">🪪</span>
-                                <span id="id-filename" class="text-xs font-bold text-brand-600 dark:text-brand-400">Click to upload ID Card</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="submit" id="app-submit-btn" class="w-full py-4 mt-6 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 transition-all active:scale-95 uppercase tracking-wider">Submit Application</button>
-                </form>
+                <p class="text-xs text-slate-600 dark:text-slate-400 mb-5 font-medium leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-4">To unlock the Contributor Dashboard, please fill out the secure Google Form to verify your College ID. Approval takes 12-24 hours.</p>
+
+                <a id="app-google-form-btn" href="#" target="_blank" class="block text-center w-full py-4 mt-2 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 transition-all active:scale-95 uppercase tracking-wider">
+                    1. Open Application Form
+                </a>
+                
+                <button onclick="window.markApplicationPending()" class="w-full py-4 mt-4 rounded-xl text-sm font-bold bg-green-600 text-white shadow-lg shadow-green-600/30 hover:bg-green-700 transition-all active:scale-95 uppercase tracking-wider">
+                    2. I Have Submitted The Form
+                </button>
             </div>
         </div>
     </div>
 `;
 
+// Insert the HTML directly into the page exactly at the start of the <body>
 document.body.insertAdjacentHTML('afterbegin', appShellHTML);
+
 
 // 2. GLOBALS & UI STATE
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
-
-// Admin Emails
-const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com", "pankajmahto109@gmail.com"];
 
 window.toggleAuthMode = function(mode) { window.userPanelApp.authMode = mode; window.userPanelApp.renderState(); };
 
@@ -144,6 +130,13 @@ window.toggleTheme = function() {
 };
 
 window.openContributorModal = function() {
+    const user = window.currentUserObj;
+    if(user) {
+        // REPLACE THIS URL WITH YOUR GOOGLE FORM 1 (Application/ID Form) URL
+        const form1URL = `https://docs.google.com/forms/d/e/YOUR_FORM_1_ID/viewform?entry.12345=${encodeURIComponent(user.email)}`;
+        const btn = document.getElementById('app-google-form-btn');
+        if(btn) btn.href = form1URL;
+    }
     const bd = document.getElementById('contributor-modal-backdrop');
     const cd = document.getElementById('contributor-modal-card');
     if(bd) bd.classList.remove('opacity-0', 'pointer-events-none');
@@ -155,6 +148,18 @@ window.closeContributorModal = function() {
     const cd = document.getElementById('contributor-modal-card');
     if(bd) bd.classList.add('opacity-0', 'pointer-events-none');
     if(cd) cd.classList.add('scale-95');
+};
+
+// Sets their status to pending locally when they click the confirmation button
+window.markApplicationPending = function() {
+    setTimeout(() => {
+        window.currentUserProfileData = window.currentUserProfileData || {};
+        window.currentUserProfileData.contributorStatus = 'pending';
+        window.closeContributorModal();
+        window.userPanelApp.renderState(); 
+        // Note: In a real backend, you'd write {contributorStatus: 'pending'} to Firestore here.
+        alert("Status updated! Our admin team will review your application shortly.");
+    }, 1000);
 };
 
 // 3. THE MULTI-VIEW USER PANEL APP
@@ -184,27 +189,22 @@ window.userPanelApp = {
     setView: function(view) { this.viewMode = view; this.renderState(); },
     
     renderState: function() {
-        const user = window.currentUserObj; 
-        const pData = window.currentUserProfileData || {};
+        const user = window.currentUserObj; const pData = window.currentUserProfileData || {};
         const els = this.els(); if(!els.body || !els.footer) return;
         
         const legalFooterHtml = `
-            <div class="flex flex-wrap justify-center gap-x-3 gap-y-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide w-full px-2 mb-2 mt-4">
-                <a href="legal.html?page=about" class="hover:text-brand-500 transition-colors">About Us</a> • 
-                <a href="legal.html?page=contact" class="hover:text-brand-500 transition-colors">Contact</a> • 
-                <a href="legal.html?page=terms" class="hover:text-brand-500 transition-colors">Terms</a> • 
-                <a href="legal.html?page=privacy" class="hover:text-brand-500 transition-colors">Privacy</a>
-            </div>`;
+    <div class="flex flex-wrap justify-center gap-x-3 gap-y-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide w-full px-2 mb-2 mt-4">
+        <a href="legal.html?page=about" class="hover:text-brand-500 transition-colors">About Us</a> • 
+        <a href="legal.html?page=contact" class="hover:text-brand-500 transition-colors">Contact</a> • 
+        <a href="legal.html?page=terms" class="hover:text-brand-500 transition-colors">Terms</a> • 
+        <a href="legal.html?page=privacy" class="hover:text-brand-500 transition-colors">Privacy</a> • 
+        <a href="legal.html?page=refunds" class="hover:text-brand-500 transition-colors">Refunds</a>
+    </div>`;
 
         if (user) {
-            const isAdmin = user.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
-
             if (this.viewMode === 'menu') {
                 let badgeHtml = ''; let daysHtml = '';
-                
-                if (isAdmin) {
-                    badgeHtml = `<span class="px-3 py-1 mt-3 bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900 text-[10px] font-extrabold rounded-full uppercase tracking-wider">PLATFORM ADMIN</span>`;
-                } else if (window.globalUserStatus && window.globalUserStatus.isVIP) {
+                if (window.globalUserStatus && window.globalUserStatus.isVIP) {
                     badgeHtml = `<span class="px-3 py-1 mt-3 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-brand-200 dark:border-brand-800">PRO / VIP ACCESS</span>`;
                     const fd = window.globalUserStatus.validUntil === 'Lifetime Access' ? 'Lifetime Access' : new Date(window.globalUserStatus.validUntil).toLocaleDateString('en-US');
                     daysHtml = `<div class="w-full mt-4 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex flex-col items-center"><span class="text-2xl font-black text-green-600 dark:text-green-400">${window.globalUserStatus.daysLeft === 999 ? '∞' : window.globalUserStatus.daysLeft}</span><span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Days Left</span><span class="text-[10px] font-medium text-slate-400 mt-1">Valid until ${fd}</span></div>`;
@@ -218,44 +218,90 @@ window.userPanelApp = {
                 }
 
                 const nameToDisplay = user.displayName || pData.fullName || "User";
-                const initial = (user.email || "U").charAt(0).toUpperCase();
+                const initial = user.email.charAt(0).toUpperCase();
 
-                // THE EXCLUSIVITY FILTER (AIIMS ONLY)
+                // --------------------------------------------------------
+                // CONTRIBUTOR LOGIC INJECTED HERE
+                // --------------------------------------------------------
                 const userCollege = (pData.college || '').toUpperCase();
                 const isAIIMS = userCollege.includes('AIIMS'); 
 
                 const trustScore = pData.trustScore || 0;
-                const cStatus = pData.contributorStatus || 'none'; 
-                const isContributor = trustScore >= 1 || cStatus === 'approved' || isAdmin;
-                const seatsAvailable = true; // Assume true for UI. In prod, fetch from DB.
+                const cStatus = pData.contributorStatus || 'none'; // 'none', 'pending', 'approved', 'rejected', 'fired'
+                const isContributor = trustScore >= 1 || cStatus === 'approved' || window.accessLevel === 'admin';
+                const seatsAvailable = true; // DB Check simulation
 
                 let workflowHtml = '';
 
-                if (isAdmin) {
+                if (window.accessLevel === 'admin') {
                     workflowHtml = `<a onclick="window.location.href='admin.html'" class="flex items-center justify-between p-4 bg-slate-900 dark:bg-slate-100 rounded-2xl cursor-pointer group mt-4"><div class="flex items-center gap-3 text-white dark:text-slate-900 font-semibold text-sm"><span class="text-xl">📋</span><div class="flex flex-col"><span class="font-bold leading-tight">Admin Dashboard</span><span class="text-[10px] font-bold opacity-80 uppercase tracking-wider">Rewards & Extractors</span></div></div><span class="text-xs bg-white/10 dark:bg-black/5 px-2 py-1 rounded-md text-white dark:text-black">Open</span></a>`;
                 } else if (isAIIMS) {
                     if (isContributor) {
-                        const googleFormLink = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?entry.YOUR_EMAIL_ID=" + encodeURIComponent(user.email);
-                        workflowHtml = `<a href="${googleFormLink}" target="_blank" class="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl shadow-lg cursor-pointer group mt-4"><div class="flex items-center gap-3 text-white"><span class="text-xl">📤</span><div class="flex flex-col"><span class="text-sm font-bold">Upload Qs Paper</span><span class="text-[10px] opacity-80">+ Earn Trust Score</span></div></div><span class="text-xs bg-black/10 px-2 py-1 rounded-md text-white font-bold">Go</span></a>`;
+                        // STAGE 2: Approved users get access to the actual dashboard (upload.html)
+                        workflowHtml = `
+                        <a href="upload.html" class="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl border-none shadow-lg hover:shadow-green-500/30 cursor-pointer transition-all group mt-4">
+                            <div class="flex items-center gap-4 text-white font-semibold text-sm">
+                                <span class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform shadow-inner">🎓</span> 
+                                <div class="flex flex-col">
+                                    <span class="font-bold leading-tight">Contributor Dashboard</span>
+                                    <span class="text-[10px] font-bold opacity-80 mt-0.5">Log Exams & Upload Papers</span>
+                                </div>
+                            </div>
+                            <span class="text-white/70 text-xs font-bold bg-black/10 px-2 py-1 rounded-md">Go</span>
+                        </a>`;
                     } else if (cStatus === 'pending') {
-                        workflowHtml = `<div class="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-800 mt-4 flex gap-3"><div class="text-2xl animate-pulse">⏳</div><div><h4 class="text-sm font-bold text-amber-800 dark:text-amber-400">Application Under Review</h4><p class="text-[10px] text-amber-600 dark:text-amber-500 mt-1 font-medium">Verifying your College ID.</p></div></div>`;
+                        workflowHtml = `
+                        <div class="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-800 mt-4 flex gap-3">
+                            <div class="text-2xl animate-pulse">⏳</div>
+                            <div>
+                                <h4 class="text-sm font-bold text-amber-800 dark:text-amber-400">Application Under Review</h4>
+                                <p class="text-[10px] text-amber-600 dark:text-amber-500 mt-1 font-medium leading-relaxed">Our admin team is verifying your College ID. You will unlock the dashboard once approved.</p>
+                            </div>
+                        </div>`;
                     } else if (cStatus === 'rejected') {
                         const reason = pData.rejectionReason || "Verification failed. Please ensure your College ID is clear.";
-                        workflowHtml = `<div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-900/50 mt-4"><h4 class="text-sm font-bold text-red-800 dark:text-red-400 mb-1">❌ Application Rejected</h4><p class="text-[10px] text-red-600 font-bold bg-white dark:bg-slate-900 p-2 rounded mb-3">Reason: ${reason}</p><button onclick="window.openContributorModal()" class="w-full py-2 bg-red-600 text-white font-bold text-xs rounded-xl">Fix & Apply Again</button></div>`;
+                        workflowHtml = `
+                        <div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 mt-4">
+                            <h4 class="text-sm font-bold text-red-800 dark:text-red-400 mb-1">❌ Application Rejected</h4>
+                            <p class="text-[10px] text-red-600 font-bold bg-white p-2 rounded mb-3">Reason: ${reason}</p>
+                            <button onclick="window.openContributorModal()" class="w-full py-2 bg-red-600 text-white font-bold text-xs rounded-xl">Fix & Apply Again</button>
+                        </div>`;
                     } else if (cStatus === 'fired') {
-                        workflowHtml = `<div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-900/50 mt-4 text-center"><h4 class="text-sm font-bold text-red-800 dark:text-red-400 mb-1">🚨 Access Revoked</h4><p class="text-[10px] text-red-600 font-bold bg-white dark:bg-slate-900 p-2 rounded">Reason: You received 3 Strikes.</p></div>`;
+                        workflowHtml = `
+                        <div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-200 mt-4 text-center">
+                            <h4 class="text-sm font-bold text-red-800 dark:text-red-400 mb-1">🚨 Access Revoked</h4>
+                            <p class="text-[10px] text-red-600 font-bold bg-white p-2 rounded">Reason: You received 3 Strikes.</p>
+                        </div>`;
                     } else if (seatsAvailable) {
-                        workflowHtml = `<div class="bg-gradient-to-br from-brand-600 to-purple-700 rounded-2xl p-5 text-white mt-4 shadow-xl"><h4 class="font-black text-lg mb-1">Become a Contributor</h4><p class="text-xs text-brand-100 mb-4">Earn permanent perks for your college.</p><button onclick="window.openContributorModal()" class="w-full py-3 bg-white text-brand-700 font-black rounded-xl hover:scale-[1.02] transition-transform shadow-lg shadow-black/20">Apply Now</button></div>`;
+                        workflowHtml = `
+                        <div class="bg-gradient-to-br from-brand-600 to-purple-700 rounded-2xl p-5 text-white mt-4 shadow-xl relative overflow-hidden">
+                            <div class="relative z-10">
+                                <h4 class="font-black text-lg mb-1 shadow-sm">Become a Contributor</h4>
+                                <p class="text-xs text-brand-100 font-medium mb-4 leading-relaxed">Help the community grow and earn permanent platform perks.</p>
+                                <ul class="text-xs space-y-2 mb-5 font-bold">
+                                    <li class="flex items-center gap-2"><span class="bg-white/20 p-1 rounded-md text-[10px]">✨</span> Free Premium Access</li>
+                                    <li class="flex items-center gap-2"><span class="bg-white/20 p-1 rounded-md text-[10px]">🛡️</span> Verified Profile Badge</li>
+                                </ul>
+                                <button onclick="window.openContributorModal()" class="w-full py-3 bg-white text-brand-700 font-black rounded-xl hover:scale-[1.02] transition-transform shadow-lg">View Perks & Apply</button>
+                            </div>
+                            <div class="absolute -right-6 -bottom-6 text-8xl opacity-10 blur-sm">🎁</div>
+                        </div>`;
                     } else {
-                        workflowHtml = `<div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 mt-4 text-center"><span class="text-xl mb-1 block">🔒</span><h4 class="text-sm font-bold text-slate-800 dark:text-white">Seats Full</h4><p class="text-[10px] text-slate-500 mt-1 font-medium">All 20 contributor seats for your batch are currently occupied. Check back later.</p></div>`;
+                        workflowHtml = `
+                        <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 mt-4 text-center">
+                            <span class="text-xl mb-1 block">🔒</span>
+                            <h4 class="text-sm font-bold text-slate-800 dark:text-white">Seats Full</h4>
+                            <p class="text-[10px] text-slate-500 mt-1 font-medium">All 20 contributor seats for your batch are currently occupied. Check back later.</p>
+                        </div>`;
                     }
                 }
 
+                // Append the original profile UI with the new workflow logic
                 els.body.innerHTML = `
                     <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <div class="w-20 h-20 rounded-full bg-brand-50 dark:bg-slate-800 flex items-center justify-center text-3xl font-bold text-brand-600 dark:text-brand-400 mb-3 shadow-md border border-brand-100 dark:border-slate-700">${initial}</div>
                         <h3 class="font-bold text-slate-900 dark:text-white text-center w-full truncate px-2 text-sm">${nameToDisplay}</h3>
-                        <p class="text-xs text-slate-500 truncate w-full text-center mt-1">${user.email}</p>
+                        <p class="text-[10px] font-bold text-brand-500 uppercase tracking-widest bg-brand-50 px-2 py-1 rounded mt-1">${userCollege || 'Unknown College'}</p>
                         ${badgeHtml}
                         ${daysHtml}
                     </div>
@@ -415,7 +461,7 @@ window.userPanelApp = {
                             <input type="email" id="login-email" placeholder="Email Address" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
                             <div class="relative w-full">
                                 <input type="password" id="login-pass" placeholder="Password" class="w-full pl-4 pr-10 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-shadow" />
-                                <button type="button" onclick="window.togglePassword()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                                <button type="button" onclick="window.togglePassword()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.059 10.059 0 011.591-2.714M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1.5 1.5l22.5 22.5" /></svg></button>
                             </div>
                             <div class="text-right w-full pt-1"><button onclick="window.handleForgotPass()" class="text-[10px] font-bold text-brand-500 uppercase tracking-wider hover:text-brand-600 transition-colors">Forgot Password?</button></div>
                         </div>
@@ -426,23 +472,6 @@ window.userPanelApp = {
             els.footer.innerHTML = legalFooterHtml;
         }
     }
-};
-
-window.submitContributorApplication = async function() {
-    const btn = document.getElementById('app-submit-btn');
-    const examDate = document.getElementById('app-next-exam').value;
-    if(!examDate) return alert("Please select your next exam date.");
-    
-    btn.disabled = true; btn.innerText = "Submitting securely...";
-    
-    // UI Simulation (In Prod, this pushes to Firestore)
-    setTimeout(() => {
-        window.currentUserProfileData.contributorStatus = 'pending';
-        window.currentUserProfileData.nextExamDate = examDate;
-        window.closeContributorModal();
-        window.userPanelApp.renderState(); 
-        alert("Application Submitted! Your exam schedule has been logged.");
-    }, 1500);
 };
 
 if ('serviceWorker' in navigator) {
