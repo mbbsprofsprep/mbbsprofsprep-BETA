@@ -46,7 +46,7 @@ const appShellHTML = `
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-brand-50 dark:bg-slate-800/50">
                 <div>
                     <h3 class="font-black text-lg text-brand-600 dark:text-brand-400">Contributor Application</h3>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Identity & Schedule</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Identity Verification</p>
                 </div>
                 <button onclick="window.closeContributorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
@@ -86,13 +86,9 @@ const appShellHTML = `
                             <input type="text" id="app-name" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Date of your next Prof Exam</label>
-                            <input type="date" id="app-next-exam" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
-                            <p class="text-[9px] text-brand-600 dark:text-brand-400 font-bold mt-1">⚠️ You must upload papers within 7 days of this date to avoid strikes.</p>
-                        </div>
-                        <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Google Drive Link to your ID Card</label>
                             <input type="url" id="app-id-link" placeholder="Paste viewable Google Drive link here" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium dark:text-white outline-none focus:ring-2 focus:ring-brand-500">
+                            <p class="text-[9px] text-slate-500 font-bold mt-1">Make sure the link access is set to "Anyone with the link".</p>
                         </div>
                     </div>
                     <button type="submit" id="app-submit-btn" class="w-full py-4 mt-6 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 transition-all active:scale-95 uppercase tracking-wider">Submit Application</button>
@@ -102,16 +98,14 @@ const appShellHTML = `
     </div>
 `;
 
-// Insert the HTML directly into the page exactly at the start of the <body>
+// Insert the HTML directly into the page exactly at the start of the body
 document.body.insertAdjacentHTML('afterbegin', appShellHTML);
 
-// ==========================================
-// GLOBALS & UI STATE
-// ==========================================
+// 2. GLOBALS & UI STATE
 const APP_LOGO_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg";
 
 // Webhook URL (Connected to your live Google Sheet)
-const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxejY5ol02zKLaItmB3qCWM8d3XG4A0rHcn4RrzUlkKGS5bGT78YdAaosBlnmWkFtyC/exec"; 
+const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxejY5ol02zKLaItmB3qCWM8d3XG4A0rHcn4RrzUlkKGS5bGT78YdAaosBlnmWkFtyC/exec";
 
 // Admin Emails
 const ADMIN_EMAILS = ["educateindiainstitute@gmail.com", "mbbsprofsprep@gmail.com", "pankajmahto109@gmail.com"];
@@ -237,8 +231,7 @@ window.userPanelApp = {
                     workflowHtml = `<a onclick="window.location.href='admin.html'" class="flex items-center justify-between p-4 bg-slate-900 dark:bg-slate-100 rounded-2xl cursor-pointer group mt-4"><div class="flex items-center gap-3 text-white dark:text-slate-900 font-semibold text-sm"><span class="text-xl">📋</span><div class="flex flex-col"><span class="font-bold leading-tight">Admin Dashboard</span><span class="text-[10px] font-bold opacity-80 uppercase tracking-wider">Rewards & Extractors</span></div></div><span class="text-xs bg-white/10 dark:bg-black/5 px-2 py-1 rounded-md text-white dark:text-black">Open</span></a>`;
                 } else if (isAIIMS) {
                     if (isContributor) {
-                        const googleFormLink = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?entry.YOUR_EMAIL_ID=" + encodeURIComponent(user.email);
-                        workflowHtml = `<a href="${googleFormLink}" target="_blank" class="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl shadow-lg cursor-pointer group mt-4"><div class="flex items-center gap-3 text-white"><span class="text-xl">📤</span><div class="flex flex-col"><span class="text-sm font-bold">Upload Qs Paper</span><span class="text-[10px] opacity-80">+ Earn Trust Score</span></div></div><span class="text-xs bg-black/10 px-2 py-1 rounded-md text-white font-bold">Go</span></a>`;
+                        workflowHtml = `<a href="upload.html" class="flex items-center justify-between p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl shadow-lg cursor-pointer group mt-4"><div class="flex items-center gap-3 text-white"><span class="text-xl">📤</span><div class="flex flex-col"><span class="text-sm font-bold">Upload Qs Paper</span><span class="text-[10px] opacity-80">+ Earn Trust Score</span></div></div><span class="text-xs bg-black/10 px-2 py-1 rounded-md text-white font-bold">Go</span></a>`;
                     } else if (cStatus === 'pending') {
                         workflowHtml = `<div class="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-800 mt-4 flex gap-3"><div class="text-2xl animate-pulse">⏳</div><div><h4 class="text-sm font-bold text-amber-800 dark:text-amber-400">Application Under Review</h4><p class="text-[10px] text-amber-600 dark:text-amber-500 mt-1 font-medium">Verifying your College ID.</p></div></div>`;
                     } else if (cStatus === 'rejected') {
@@ -431,6 +424,8 @@ window.userPanelApp = {
 };
 
 // ==========================================
+// CONTRIBUTOR APPLICATION (NATIVE WEBHOOK)
+// ==========================================
 window.submitContributorApplication = async function() {
     const btn = document.getElementById('app-submit-btn');
     const name = document.getElementById('app-name').value;
@@ -458,7 +453,7 @@ window.submitContributorApplication = async function() {
             body: JSON.stringify(formData)
         });
 
-        // 3. Update Firebase Profile (Simulated for UI)
+        // 3. Update Firebase Profile (Simulated for UI currently)
         window.currentUserProfileData.contributorStatus = 'pending';
         
         // 4. Clean up UI
