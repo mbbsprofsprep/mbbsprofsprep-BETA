@@ -1500,14 +1500,21 @@
                 if(window.userPanelApp && window.userPanelApp.isOpen) window.userPanelApp.renderState(); 
             }
         });
-
-        // Spacebar to flip Anki Card
+      // Keyboard Navigation (Space to flip, Arrows to change cards)
         document.addEventListener('keydown', (e) => {
-            if (window.isDeckMode && e.code === 'Space') {
-                e.preventDefault(); // Stops the page from scrolling down
-                const q = window.activeDeckQuestions[window.deckIndex];
-                if (q && document.getElementById(`container-deck-${q.q}`)) {
-                    window.toggleFlashcard(`deck-${q.q}`);
+            if (window.isDeckMode) {
+                if (e.code === 'Space') {
+                    e.preventDefault(); // Stops the page from scrolling down
+                    const q = window.activeDeckQuestions[window.deckIndex];
+                    if (q && document.getElementById(`container-deck-${q.q}`)) {
+                        window.toggleFlashcard(`deck-${q.q}`);
+                    }
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault(); // Stops the page from scrolling horizontally
+                    window.deckNext();
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault(); // Stops the page from scrolling horizontally
+                    window.deckPrev();
                 }
             }
         });
