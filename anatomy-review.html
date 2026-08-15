@@ -100,6 +100,13 @@
         .deck-nav-btn.active { background: #0ea5e9 !important; color: white !important; border-color: #0ea5e9 !important; }
         .deck-nav-btn.correct { background: #22c55e; color: white; border-color: #16a34a; }
         .deck-nav-btn.wrong { background: #ef4444; color: white; border-color: #dc2626; }
+   /* --- ADMIN FLASHCARD 3D FLIP ANIMATION --- */
+        .flashcard-container { perspective: 1000px; }
+        .flashcard-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; }
+        .flashcard-inner.is-flipped { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; }
+        .flashcard-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; }
+        
     </style>
 </head>
 <body class="bg-brand-50 dark:bg-dark-bg transition-colors duration-300 relative flex flex-col min-h-screen" onclick="window.closeAllDropdowns(event)">
@@ -312,7 +319,21 @@
                 }
             }
         };
-
+        
+// --- FLASHCARD TOGGLE LOGIC ---
+        window.toggleFlashcard = function(questionId) {
+            const container = document.getElementById(`container-${questionId}`);
+            const card = document.getElementById(`card-${questionId}`);
+            
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                setTimeout(() => { card.classList.add('is-flipped'); }, 50);
+            } else {
+                card.classList.remove('is-flipped');
+                setTimeout(() => { container.classList.add('hidden'); }, 600); 
+            }
+        };
+        
         // --- FETCH DYNAMIC JSON LOGIC ---
         window.fetchQuestions = async function() {
             const tableBody = document.getElementById('tableBody');
@@ -553,7 +574,7 @@
                         });
                     }
                     qHtml += '</div>';
-                } else { 
+              } else { 
                     const markMatch = cleanStem.match(/(\(\d+(?:\+\d+)*=?\d*\)|\[\d+(?:\+\d+)*=?\d*\])/);
                     let stemWithoutMarks = cleanStem; let marksDisplay = '';
                     if (markMatch) {
@@ -562,6 +583,34 @@
                     }
                     qHtml += `<div class="theory-question shadow-sm dark:bg-dark-surface dark:text-brand-200 dark:border-brand-500 text-left"><span>${stemWithoutMarks}</span>${marksDisplay}</div>`; 
                 }
+
+                // --- ADMIN FLASHCARD RENDER LOGIC ---
+                const adminEmails = ["pankajmahto109@gmail.com", "educateindiainstitute@gmail.com", "indrajeet91434@gmail.com", "pankajkumarmahto1009@gmail.com"];
+                const isAdmin = window.currentUserObj && window.currentUserObj.email && adminEmails.includes(window.currentUserObj.email.toLowerCase());
+
+                if (isAdmin && item.ans_image) {
+                    qHtml += `
+                    <div class="mt-4 border-t border-brand-100 dark:border-slate-800 pt-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold text-red-500 uppercase tracking-widest bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded">Admin Only</span>
+                            <button onclick="window.toggleFlashcard('${item.q}')" class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-bold py-2 px-4 rounded-lg transition-transform active:scale-95 shadow-lg shadow-brand-500/30">
+                                <span>👁️ View Answer Card</span>
+                            </button>
+                        </div>
+                        
+                        <div class="flashcard-container hidden w-full" id="container-${item.q}">
+                            <div class="flashcard-inner" id="card-${item.q}">
+                                <div class="flashcard-front bg-slate-100 dark:bg-slate-800 rounded-xl p-4 flex items-center justify-center min-h-[100px] border border-slate-200 dark:border-slate-700">
+                                    <p class="text-slate-400 font-bold animate-pulse">Flipping page...</p>
+                                </div>
+                                <div class="flashcard-back">
+                                    <img src="${item.ans_image}" class="w-full h-auto rounded-xl shadow-2xl border border-brand-200 dark:border-brand-800" alt="Answer for ${item.q}" loading="lazy">
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+
                 cell2.innerHTML = qHtml;
                 
                 let cell_type = row.insertCell(); cell_type.className = 'px-4 py-4 text-center align-middle';
