@@ -415,7 +415,9 @@
                 document.getElementById('dynamic-page-title').innerText = `MBBS PROFS PREP - ${window.SUBJECT_CODE} Review (${window.COLLEGE_NAME})`;
                 const headerEl = document.getElementById('dynamic-college-header');
                 if(headerEl) headerEl.innerText = window.COLLEGE_NAME;
-
+                
+window.processDataForAccess();
+                
             } catch (error) {
                 console.error("Error fetching data:", error);
                 if(tableBody) {
