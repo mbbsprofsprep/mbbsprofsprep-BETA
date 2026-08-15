@@ -5,8 +5,7 @@
 <meta name="theme-color" content="#0ea5e9">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg">
-    
+<link rel="apple-touch-icon" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgFbo8CVZSf-ejwVGTTTGeu1B5bJj4JGloqdh70o21Tf_895kWYOvNmyE9cnAAR66r77ZFZZKTslF6QIp4F-bWxPsXjGsAWzwc75D6VnXqFMbi-4NgUazELmmMWeyX3ApASZncrHUFjni62u4spE3g19Pfcbsy-h5iUTfxTXWWTEYPgaD47kLMDA43e1SMQ/s678/1000126459.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MBBS Profs Prep - Central Portal</title>
@@ -123,6 +122,14 @@
     </aside>
     <div class="fixed inset-0 z-[9995] bg-slate-900/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 md:hidden" id="pdf-smart-backdrop" onclick="window.pdfSmartApp.close()"></div>
 
+    <div id="subjectVersionModal" class="fixed inset-0 z-[20000] bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 border border-slate-200 dark:border-slate-700" id="subjectVersionCard">
+            <h3 class="text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">📚 Select Version</h3>
+            <div id="subjectVersionOptions" class="space-y-3"></div>
+            <button onclick="window.closeSubjectVersionModal()" class="w-full mt-4 p-3 rounded-xl bg-slate-200 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">Cancel</button>
+        </div>
+    </div>
+
     <script>
         window.globalUserStatus = { isVIP: false, daysLeft: 0, validUntil: null, expired: false };
         window.currentUserObj = null;
@@ -163,13 +170,49 @@
             ],
             subjects: {
                 '1': [ { name: 'Anatomy', icon: '🦴', id: 'anatomy' }, { name: 'Physiology', icon: '🧠', id: 'physiology' }, { name: 'Biochemistry', icon: '🧪', id: 'biochemistry' } ],
-                '2': [ { name: 'Pathology', icon: '🔬', id: 'pathology' }, { name: 'Pharmacology', icon: '💊', id: 'pharmacology' }, { name: 'Microbiology', icon: '🦠', id: 'microbiology' }, { name: 'Forensic Medicine', icon: '⚖️', id: 'fmt' } ],
+                '2': [ 
+                    { name: 'Pathology', icon: '🔬', id: 'pathology' }, 
+                    { name: 'Pharmacology', icon: '💊', id: 'pharmacology' },   
+                    { name: 'Microbiology', icon: '🦠', id: 'microbiology' }, 
+                    { name: 'Forensic Medicine', icon: '⚖️', id: 'fmt' } 
+                ],
                 '3': [ { name: 'ENT', icon: '👂', id: 'ent' }, { name: 'Ophthalmology', icon: '👁️', id: 'ophthalmology' }, { name: 'Community Medicine', icon: '🏘️', id: 'psm' }, { name: 'Psychiatry', icon: '🧠', id: 'psychiatry' }, { name: 'Orthopaedics', icon: '🦴', id: 'orthopaedics' } ],
                 '4': [ { name: 'Medicine', icon: '🩺', id: 'medicine' }, { name: 'Surgery', icon: '🔪', id: 'surgery' }, { name: 'Obs & Gynae', icon: '👶', id: 'obg' }, { name: 'Paediatrics', icon: '🧸', id: 'paediatrics' }, { name: 'Dermatology', icon: '🧴', id: 'dermatology' }, { name: 'Anaesthesia', icon: '💉', id: 'anaesthesia' }, { name: 'Radiology', icon: '🩻', id: 'radiology' } ]
             },
             overrides: {
-                'deoghar_pathoogy': [{ label: 'Pathology Database', url: 'https://drive.google.com/file/d/1QROuWBHkNNGVsSlBBrWuW0BuKW87m79Y/preview' }]
+                // COMMENTED OUT OVERRIDE: This restores the normal JSON routing for Deoghar Pathology
+                // 'deoghar_pathology': [{ label: 'Pathology Database', url: 'https://drive.google.com/file/d/1QROuWBHkNNGVsSlBBrWuW0BuKW87m79Y/preview' }]
             }
+        };
+
+        // Modal Functions for Subject Versioning
+        window.openSubjectVersionModal = function(options) {
+            const modal = document.getElementById('subjectVersionModal');
+            const card = document.getElementById('subjectVersionCard');
+            const optsContainer = document.getElementById('subjectVersionOptions');
+            
+            optsContainer.innerHTML = options.map(opt => `
+                <button onclick="window.location.href='${opt.url}'" 
+                        class="w-full p-4 text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-colors shadow-sm">
+                    ${opt.label}
+                </button>
+            `).join('');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95');
+            }, 10);
+        };
+        
+        window.closeSubjectVersionModal = function() {
+            const modal = document.getElementById('subjectVersionModal');
+            const card = document.getElementById('subjectVersionCard');
+            modal.classList.add('opacity-0');
+            card.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
         };
 
         window.app = {
@@ -200,6 +243,12 @@
             },
             
             handleSubjectClick: function(sub, push = true) {
+                // Intercept dynamic execution mapping for multi-option version routing modules
+                if (sub.isMultiOption) {
+                    window.openSubjectVersionModal(sub.options);
+                    return;
+                }
+
                 const key = `${this.state.inst.id}_${sub.id}`;
                 let links = window.DATA.overrides[key];
                 
@@ -211,19 +260,19 @@
                         'biochemistry': 'biochemistry-review.html',
                         'pharmacology': 'pharmacology-review.html',
                         'microbiology' : 'microbiology-review.html',
-                          'fmt': 'fmt-review.html',
+                        'fmt': 'fmt-review.html',
                         'orthopaedics': 'orthopaedics-review.html',
                         'ent': 'ent-review.html',
                         'psychiatry': 'psychiatry-review.html',
                         'psm': 'cfm-review.html',
                         'ophthalmology': 'ophthal-review.html',
-                      'medicine': 'medicine-review.html',
+                        'medicine': 'medicine-review.html',
                         'surgery': 'surgery-review.html',
                         'paediatrics': 'paediatrics-review.html',
                         'obg': 'obg-review.html',
                         'radiology': 'radiology-review.html',
                         'dermatology': 'dermatology-review.html',
-                    'anaesthesia': 'anaesthesia-review.html',
+                        'anaesthesia': 'anaesthesia-review.html',
                     };
                     
                     if (routeMap[sub.id]) {
@@ -271,8 +320,43 @@
                 this.toggleView('subjects');
                 document.getElementById('selected-year-name').innerText = year.name;
                 document.getElementById('selected-inst-sub-name').innerText = inst.name;
-                document.getElementById('subjects-grid').innerHTML = window.DATA.subjects[year.id].map(sub => {
-                    return `<div onclick="window.app.handleSubjectClick({id:'${sub.id}', name:'${sub.name}'})" class="glass-card p-6 rounded-xl cursor-pointer group flex items-center gap-4 hover:border-accent-yellow transition-all"><div class="text-4xl group-hover:scale-110 transition-transform">${sub.icon}</div><div><h3 class="text-xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-accent-yellow">${sub.name}</h3><p class="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">Open ➝</p></div></div>`;
+
+                // Deep copy pristine data arrays to isolate custom properties for specific campus codes
+                let subjectList = JSON.parse(JSON.stringify(window.DATA.subjects[year.id]));
+
+               // Apply logic safely inside runtime rendering block exclusively for AIIMS Deoghar
+if (inst.id === 'deoghar' && year.id === '2') {
+    // Microbiology Multi-Option Mapping
+    const microIndex = subjectList.findIndex(s => s.id === 'microbiology');
+    if (microIndex !== -1) {
+        subjectList[microIndex].isMultiOption = true;
+        subjectList[microIndex].options = [
+            { label: 'Standard Chapterwise PYQ', url: `microbiology-review.html?college=${inst.id}` },
+            { label: 'Chapterwise PYQ (Marrow Ed 8)', url: `microbiology-review.html?college=${inst.id}&version=ed8` }
+        ];
+    }
+
+    // Pathology Multi-Option Mapping
+    const pathoIndex = subjectList.findIndex(s => s.id === 'pathology');
+    if (pathoIndex !== -1) {
+        subjectList[pathoIndex].isMultiOption = true;
+        subjectList[pathoIndex].options = [
+            { label: 'Standard Chapterwise PYQ', url: `pathology-review.html?college=${inst.id}` },
+            { label: 'Chapterwise PYQ (Marrow Ed 8)', url: `pathology-review.html?college=${inst.id}&version=ed8` }
+        ];
+    }
+}
+
+                document.getElementById('subjects-grid').innerHTML = subjectList.map(sub => {
+                    const subDataStr = JSON.stringify(sub).replace(/"/g, '&quot;');
+                    
+                    return `<div onclick="window.app.handleSubjectClick(${subDataStr})" class="glass-card p-6 rounded-xl cursor-pointer group flex items-center gap-4 hover:border-accent-yellow transition-all">
+                                <div class="text-4xl group-hover:scale-110 transition-transform">${sub.icon}</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-accent-yellow">${sub.name}</h3>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">Open ➝</p>
+                                </div>
+                            </div>`;
                 }).join('');
                 this.updateBreadcrumbs();
             },
@@ -394,11 +478,11 @@
         const db = getDatabase(fbApp);
         window.db = db;
 
-        const allowedVIPs = [ "pankajmahto109@gmail.com", "educateindiainstitute@gmail.com", "pankajkumarmahto1009@gmail.com"];
+        const allowedVIPs = [ "pankajmahto109@gmail.com", "educateindiainstitute@gmail.com", "indrajeet91434@gmail.com", "pankajkumarmahto1009@gmail.com"];
 
-        window.executeBookmarkToggle = async function(qId, bookmarkData, isSaved) {
+        window.executeBookmarkToggle = async function(uniqueId, bookmarkData, isSaved) {
             try {
-                const dbRef = ref(db, `users/${window.currentUserObj.uid}/bookmarks/${qId}`);
+                const dbRef = ref(db, `users/${window.currentUserObj.uid}/bookmarks/${uniqueId}`);
                 if (isSaved) {
                     await remove(dbRef);
                     if (window.showModal) window.showModal("Removed", `<p class="text-sm text-slate-500 dark:text-slate-400">Question removed from your cloud bookmarks.</p>`, `<button onclick="window.closeModal()" class="w-full py-2 bg-slate-200 dark:bg-slate-800 rounded-lg font-bold text-slate-700 dark:text-slate-300 border-none">Close</button>`, `🗑️`);
@@ -474,9 +558,23 @@
         window.handleForgotPass = () => {
             const e = document.getElementById('login-email').value;
             if(!e) return window.showAuthError("Enter email first");
-            sendPasswordResetEmail(auth, e).then(() => {
-                const errDiv = document.getElementById('auth-error-msg'); errDiv.innerText = "Reset link sent! Check your inbox."; errDiv.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'border-red-200'); errDiv.classList.add('bg-green-50', 'text-green-600', 'border-green-200');
-            }).catch(err => window.showAuthError(err.message));
+            
+            sendPasswordResetEmail(auth, e)
+            .then(() => {
+                const errDiv = document.getElementById('auth-error-msg'); 
+                errDiv.innerText = "Reset link sent! Check your inbox."; 
+                errDiv.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'border-red-200'); 
+                errDiv.classList.add('bg-green-50', 'text-green-600', 'border-green-200');
+            })
+            .catch(err => { 
+                // Check if the error specifically means the user doesn't exist
+                if (err.code === 'auth/user-not-found') {
+                    window.showAuthError("Your email is not registered with us, please register.");
+                } else {
+                    // For any other errors (like invalid email format)
+                    window.showAuthError(err.message);
+                }
+            });
         };
 
         window.firebaseSignOut = () => {
@@ -489,30 +587,62 @@
             if (user) {
                 const email = user.email.toLowerCase().trim();
                 
-                // --- MULTI-DEVICE LOGIN PROTECTOR START ---
+              // --- 2-DEVICE LOGIN PROTECTOR START ---
                 if (!allowedVIPs.includes(email)) {
                     try {
-                        const sessionRef = ref(db, 'users/' + user.uid + '/current_session');
+                        const sessionsRef = ref(db, 'users/' + user.uid + '/active_sessions');
                         const myToken = localStorage.getItem('my_session_token') || Math.random().toString(36).substring(2, 15);
                         
-                        if (!localStorage.getItem('my_session_token')) { 
-                            localStorage.setItem('my_session_token', myToken); 
-                            await set(sessionRef, myToken); 
-                        }
+                        // 1. Ensure this device has a token saved locally
+                        localStorage.setItem('my_session_token', myToken);
                         
-                        onValue(sessionRef, (snap) => { 
-                            const cloudToken = snap.val();
-                            if (cloudToken && cloudToken !== myToken) { 
+                        // 2. Register this session with the current timestamp in the cloud
+                        await update(ref(db, 'users/' + user.uid), {
+                            ['active_sessions/' + myToken]: Date.now()
+                        });
+                        
+                        // 3. Listen for changes to enforce the 2-device limit
+                        onValue(sessionsRef, (snap) => { 
+                            const sessions = snap.val() || {};
+                            const sessionKeys = Object.keys(sessions);
+                            
+                            // A. If my token was deleted from the cloud, I was kicked out by a 3rd device
+                            if (sessionKeys.length > 0 && !sessions[myToken]) { 
                                 localStorage.removeItem('my_session_token');
-                                alert("Security Alert: Your account was logged into from another device. You are being signed out of this session.");
-                                window.firebaseSignOut();
-                            } 
+                                
+                                // 1. Sign out IMMEDIATELY so a page refresh cannot bypass the logout
+                                signOut(auth).then(() => {
+                                    // 2. Replace the entire screen so the app is frozen in a secure logged-out state
+                                    document.body.innerHTML = `
+                                        <div class="fixed inset-0 z-[50000] bg-slate-900 flex flex-col items-center justify-center p-6 text-center">
+                                            <div class="w-20 h-20 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center text-4xl mb-6 border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.3)]">🔒</div>
+                                            <h2 class="text-3xl font-black text-white mb-3">Session Terminated</h2>
+                                            <p class="text-slate-400 max-w-md mb-8 font-medium leading-relaxed">You logged into your account on a new device. To maintain your 2-device limit, this older session has been automatically signed out.</p>
+                                            <button onclick="window.location.reload()" class="px-8 py-4 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 transition-all active:scale-95 text-lg">Return to Login</button>
+                                        </div>
+                                    `;
+                                });
+                                return;
+                            }
+                            
+                            // B. If there are more than 2 sessions, automatically clean up the oldest one
+                            if (sessionKeys.length > 2) {
+                                // Sort keys by timestamp (oldest first)
+                                sessionKeys.sort((a, b) => sessions[a] - sessions[b]);
+                                
+                                // Identify the oldest keys to remove
+                                const keysToRemove = sessionKeys.slice(0, sessionKeys.length - 2);
+                                
+                                keysToRemove.forEach(key => {
+                                    remove(ref(db, 'users/' + user.uid + '/active_sessions/' + key));
+                                });
+                            }
                         });
                     } catch(e) { 
                         console.error("Session sync error:", e); 
                     }
                 }
-                // --- MULTI-DEVICE LOGIN PROTECTOR END ---
+                // --- 2-DEVICE LOGIN PROTECTOR END ---
 
                 onValue(ref(db, 'users/' + user.uid + '/profile'), (s) => { 
                     window.currentUserProfileData = s.val() || {}; 
@@ -530,7 +660,6 @@
                     window.accessLevel = 'premium';
                     if(typeof window.processDataForAccess === 'function' && window.isDataLoaded) window.processDataForAccess();
                     if(window.userPanelApp && window.userPanelApp.isOpen && window.userPanelApp.viewMode === 'menu') window.userPanelApp.renderState();
-                    if(window.pdfSmartApp) window.pdfSmartApp.checkVisibility();
                 } else {
                     onValue(ref(db, 'users/' + user.uid + '/subscription'), (s) => {
                         let sub = { isVIP: false, daysLeft: 0, validUntil: null, expired: false };
@@ -544,14 +673,20 @@
                         window.accessLevel = sub.isVIP ? 'premium' : 'free';
                         if(typeof window.processDataForAccess === 'function' && window.isDataLoaded) window.processDataForAccess();
                         if(window.userPanelApp && window.userPanelApp.isOpen && window.userPanelApp.viewMode === 'menu') window.userPanelApp.renderState();
-                        if(window.pdfSmartApp) window.pdfSmartApp.checkVisibility();
                     });
                 }
             } else { 
-                window.currentUserProfileData = {}; window.userBookmarks = {}; window.globalUserStatus = { isVIP: false, daysLeft: 0 }; window.accessLevel = 'guest';
+                // Hide the Coffee Button if logged out
+                const coffeeBtn = document.getElementById('summaryButton');
+                if (coffeeBtn) coffeeBtn.style.display = 'none';
+
+                window.currentUserProfileData = {}; 
+                window.userBookmarks = {}; 
+                window.globalUserStatus = { isVIP: false, daysLeft: 0 }; 
+                window.accessLevel = 'guest';
+                
                 if(typeof window.processDataForAccess === 'function' && window.isDataLoaded) window.processDataForAccess();
                 if(window.userPanelApp && window.userPanelApp.isOpen) window.userPanelApp.renderState(); 
-                if(window.pdfSmartApp) window.pdfSmartApp.checkVisibility();
             }
         });
     </script>
