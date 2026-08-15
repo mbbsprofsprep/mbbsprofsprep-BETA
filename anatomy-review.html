@@ -367,16 +367,27 @@
         window.toggleFlashcard = function(questionId) {
             const container = document.getElementById(`container-${questionId}`);
             const card = document.getElementById(`card-${questionId}`);
+            const isDeckMode = questionId.startsWith('deck-');
             
-            if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
-                setTimeout(() => { card.classList.add('is-flipped'); }, 50);
-            } else {
+            // If the card is currently flipped, unflip it
+            if (card.classList.contains('is-flipped')) {
                 card.classList.remove('is-flipped');
-                setTimeout(() => { container.classList.add('hidden'); }, 600); 
+                // Only hide the container if we are in Table Mode
+                if (!isDeckMode) {
+                    setTimeout(() => { container.classList.add('hidden'); }, 600); 
+                }
+            } else {
+                // If it is NOT flipped, flip it
+                if (!isDeckMode) {
+                    // Table Mode: unhide the container first, then flip
+                    container.classList.remove('hidden');
+                    setTimeout(() => { card.classList.add('is-flipped'); }, 50);
+                } else {
+                    // Deck Mode: container is always visible, just flip instantly
+                    card.classList.add('is-flipped');
+                }
             }
         };
-        
         // --- FETCH DYNAMIC JSON LOGIC ---
         window.fetchQuestions = async function() {
             const tableBody = document.getElementById('tableBody');
