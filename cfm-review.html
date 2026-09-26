@@ -239,6 +239,7 @@
         window.isDataLoaded = false;
         window.userBookmarks = {}; 
         window.initialViewConfigured = false;
+        window.liveAnswers = {}; // Holds dynamic answers from Firebase
 
         // ====================================================================
         // 🔴 MASTER ROUTING CONTROLS
@@ -583,6 +584,9 @@
             if(!tbody) return;
             tbody.innerHTML = ''; 
             
+            const adminEmails = ["pankajmahto109@gmail.com", "educateindiainstitute@gmail.com", "indrajeet91434@gmail.com", "pankajkumarmahto1009@gmail.com"];
+            const isAdmin = window.currentUserObj && window.currentUserObj.email && adminEmails.includes(window.currentUserObj.email.toLowerCase());
+            
             window.displayData.forEach((item, index) => {
                 const row = tbody.insertRow();
                 row.className = 'hover:bg-brand-50 dark:hover:bg-slate-800 group border-b border-slate-200 dark:border-slate-800'; 
@@ -608,13 +612,30 @@
                         stemWithoutMarks = cleanStem.replace(markMatch[0], '').trim();
                         marksDisplay = `<div class="mt-2 text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 inline-block px-2 py-1 rounded border border-brand-200 dark:border-brand-700">${markMatch[0]}</div>`;
                     }
+                    
                     qHtml += `<div class="theory-question shadow-sm dark:bg-dark-surface dark:text-brand-200 dark:border-brand-500 text-left"><span>${stemWithoutMarks}</span>${marksDisplay}</div>`; 
+
+                    let liveAns = window.liveAnswers[item.q] ? window.liveAnswers[item.q].text : "";
+                    if (liveAns) {
+                        qHtml += `
+                        <div class="mt-3 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-xl text-sm text-slate-700 dark:text-slate-200 shadow-sm transition-all">
+                            <span class="font-black text-green-700 dark:text-green-400 block mb-2 text-xs uppercase tracking-widest">Model Answer</span>
+                            <div class="whitespace-pre-wrap leading-relaxed">${liveAns}</div>
+                        </div>`;
+                    }
+
+                    if (isAdmin) {
+                        qHtml += `
+                        <div class="mt-4 p-4 border border-dashed border-brand-300 bg-brand-50/50 dark:border-brand-700 dark:bg-slate-800/50 rounded-xl relative group">
+                            <div class="absolute top-0 right-0 bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 text-[10px] font-black px-3 py-1 rounded-bl-lg rounded-tr-xl tracking-wider">ADMIN MODE</div>
+                            <label class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest block mb-2 mt-2">Write / Edit Answer</label>
+                            <textarea id="admin-ans-${item.q}" class="w-full p-3 text-sm font-medium border border-slate-200 rounded-lg dark:bg-slate-900 dark:text-white dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none resize-y min-h-[100px]" placeholder="Type or paste the answer here...">${liveAns}</textarea>
+                            <button onclick="window.saveAdminAnswer('${item.q}', this)" class="mt-3 px-5 py-2.5 bg-brand-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-brand-500/30 hover:bg-brand-600 active:scale-95 transition-all">Publish to Platform</button>
+                        </div>`;
+                    }
                 }
 
                 // --- ADMIN FLASHCARD RENDER LOGIC ---
-                const adminEmails = ["pankajmahto109@gmail.com", "educateindiainstitute@gmail.com", "indrajeet91434@gmail.com", "pankajkumarmahto1009@gmail.com"];
-                const isAdmin = window.currentUserObj && window.currentUserObj.email && adminEmails.includes(window.currentUserObj.email.toLowerCase());
-
                 if (isAdmin && item.ans_image) {
                     qHtml += `
                     <div class="mt-4 border-t border-brand-100 dark:border-slate-800 pt-4">
@@ -789,7 +810,7 @@
             }
 
             if (visibleQuestions.length === 0) {
-                window.showModal("No Questions Found", "<p class='text-slate-600 dark:text-slate-400'>No visible questions found to download.</p>", `<button onclick="window.closeModal()" class="w-full bg-slate-200 text-slate-800 font-bold py-3 rounded-xl border-none">Close</button>`, "⚠️");
+                window.showModal("No Questions Found", "<p class='text-slate-600 dark:text-slate-400'>No visible questions found to download.</p>`, `<button onclick="window.closeModal()" class="w-full bg-slate-200 text-slate-800 font-bold py-3 rounded-xl border-none">Close</button>`, "⚠️");
                 return;
             }
 
@@ -1095,6 +1116,10 @@
             const realIndex = window.displayData.indexOf(q); 
             document.getElementById('deck-counter').innerText = `${window.deckIndex + 1}/${window.activeDeckQuestions.length}`;
 
+            // Admin Authentication (Needed for editing blocks and 3D back-faces)
+            const adminEmails = ["pankajmahto109@gmail.com", "educateindiainstitute@gmail.com", "indrajeet91434@gmail.com", "pankajkumarmahto1009@gmail.com"];
+            const isAdmin = window.currentUserObj && window.currentUserObj.email && adminEmails.includes(window.currentUserObj.email.toLowerCase());
+
             const cleanStem = q.stem.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             let questionHtml = ''; let optsHtml = '';
 
@@ -1127,7 +1152,29 @@
                     stemWithoutMarks = cleanStem.replace(markMatch[0], '').trim();
                     marksDisplay = `<div class="mt-2 text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 inline-block px-2 py-1 rounded border border-brand-200 dark:border-brand-700">${markMatch[0]}</div>`;
                 }
-                questionHtml = `<div class="mb-6"><div class="theory-question shadow-sm dark:bg-dark-bg dark:text-brand-200 dark:border-brand-500 text-left"><span>${stemWithoutMarks}</span>${marksDisplay}</div></div>`; 
+                
+                questionHtml = `<div class="mb-6"><div class="theory-question shadow-sm dark:bg-dark-bg dark:text-brand-200 dark:border-brand-500 text-left"><span>${stemWithoutMarks}</span>${marksDisplay}</div>`; 
+
+                let liveAns = window.liveAnswers[q.q] ? window.liveAnswers[q.q].text : "";
+                if (liveAns) {
+                    questionHtml += `
+                    <div class="mt-3 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-xl text-sm text-slate-700 dark:text-slate-200 shadow-sm transition-all">
+                        <span class="font-black text-green-700 dark:text-green-400 block mb-2 text-xs uppercase tracking-widest">Model Answer</span>
+                        <div class="whitespace-pre-wrap leading-relaxed">${liveAns}</div>
+                    </div>`;
+                }
+
+                if (isAdmin) {
+                    questionHtml += `
+                    <div class="mt-4 p-4 border border-dashed border-brand-300 bg-brand-50/50 dark:border-brand-700 dark:bg-slate-800/50 rounded-xl relative group">
+                        <div class="absolute top-0 right-0 bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 text-[10px] font-black px-3 py-1 rounded-bl-lg rounded-tr-xl tracking-wider">ADMIN MODE</div>
+                        <label class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest block mb-2 mt-2">Write / Edit Answer</label>
+                        <textarea id="admin-ans-deck-${q.q}" class="w-full p-3 text-sm font-medium border border-slate-200 rounded-lg dark:bg-slate-900 dark:text-white dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none resize-y min-h-[100px]" placeholder="Type or paste the answer here...">${liveAns}</textarea>
+                        <button onclick="window.saveAdminAnswerDeck('${q.q}', this)" class="mt-3 px-5 py-2.5 bg-brand-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-brand-500/30 hover:bg-brand-600 active:scale-95 transition-all">Publish to Platform</button>
+                    </div>`;
+                }
+                
+                questionHtml += `</div>`; // Close the initial mb-6 container
             }
 
             // --- FULL CARD ANKI-STYLE FLIP LOGIC ---
@@ -1151,10 +1198,6 @@
                     ${chArray.map(ch => `<span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase border border-slate-200 dark:border-slate-700">${ch}</span>`).join('')}
                 </div>
             `;
-
-            // 3. Admin Authentication
-            const adminEmails = ["pankajmahto109@gmail.com", "educateindiainstitute@gmail.com", "indrajeet91434@gmail.com", "pankajkumarmahto1009@gmail.com"];
-            const isAdmin = window.currentUserObj && window.currentUserObj.email && adminEmails.includes(window.currentUserObj.email.toLowerCase());
 
             let ankiButtonHtml = '';
             let backFaceHtml = '';
@@ -1380,6 +1423,101 @@
             }
         };
 
+        // --- ADMIN ANSWER SAVING LOGIC (Firebase RTDB) ---
+        window.saveAdminAnswer = async function(qId, btn) {
+            const text = document.getElementById(`admin-ans-${qId}`).value.trim();
+            const originalText = btn.innerText;
+            
+            if (!text) {
+                if (!confirm("This will delete the current answer. Continue?")) return;
+            }
+
+            btn.innerText = "Publishing...";
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+
+            try {
+                const answerRef = ref(window.db, `answers/${window.COLLEGE_CODE}/${window.SUBJECT_CODE}/${qId}`);
+                
+                if (text) {
+                    await set(answerRef, {
+                        text: text,
+                        updatedAt: new Date().toISOString(),
+                        updatedBy: window.currentUserObj.email
+                    });
+                    btn.classList.replace('bg-brand-500', 'bg-green-500');
+                    btn.innerText = "Published! ✅";
+                } else {
+                    await remove(answerRef);
+                    btn.classList.replace('bg-brand-500', 'bg-slate-500');
+                    btn.innerText = "Removed 🗑️";
+                }
+
+                setTimeout(() => {
+                    btn.classList.remove('bg-green-500', 'bg-slate-500');
+                    btn.classList.add('bg-brand-500');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75');
+                }, 2000);
+
+            } catch(e) {
+                console.error("Save error:", e);
+                alert("Failed to publish: " + e.message);
+                btn.innerText = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+            }
+        };
+
+        window.saveAdminAnswerDeck = async function(qId, btn) {
+            const text = document.getElementById(`admin-ans-deck-${qId}`).value.trim();
+            const originalText = btn.innerText;
+            
+            if (!text) {
+                if (!confirm("This will delete the current answer. Continue?")) return;
+            }
+
+            btn.innerText = "Publishing...";
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+
+            try {
+                const answerRef = ref(window.db, `answers/${window.COLLEGE_CODE}/${window.SUBJECT_CODE}/${qId}`);
+                
+                if (text) {
+                    await set(answerRef, {
+                        text: text,
+                        updatedAt: new Date().toISOString(),
+                        updatedBy: window.currentUserObj.email
+                    });
+                    btn.classList.replace('bg-brand-500', 'bg-green-500');
+                    btn.innerText = "Published! ✅";
+                } else {
+                    await remove(answerRef);
+                    btn.classList.replace('bg-brand-500', 'bg-slate-500');
+                    btn.innerText = "Removed 🗑️";
+                }
+
+                setTimeout(() => {
+                    btn.classList.remove('bg-green-500', 'bg-slate-500');
+                    btn.classList.add('bg-brand-500');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75');
+                    window.renderDeckCard();
+                }, 2000);
+
+            } catch(e) {
+                console.error("Save error:", e);
+                alert("Failed to publish: " + e.message);
+                btn.innerText = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+            }
+        };
+        // ------------------------------------------------
+
         window.saveEditedProfile = async function(btn) {
             const name = document.getElementById('edit-name').value.trim(); const joinYear = document.getElementById('edit-join-year').value; const college = document.getElementById('edit-college').value.trim(); const city = document.getElementById('edit-city').value.trim(); const phone = document.getElementById('edit-phone').value.trim();
             if (!name) return alert("Name is required!");
@@ -1428,6 +1566,16 @@
 
             if (user) {
                 const email = user.email.toLowerCase().trim();
+                
+                // --- NEW: LISTEN FOR LIVE ANSWERS ---
+                const answersRef = ref(db, `answers/${window.COLLEGE_CODE}/${window.SUBJECT_CODE}`);
+                onValue(answersRef, (snapshot) => {
+                    window.liveAnswers = snapshot.val() || {};
+                    if (window.displayData && window.displayData.length > 0) {
+                        window.populateTable();
+                        if (window.isDeckMode) window.renderDeckCard();
+                    }
+                });
                 
                 if (coffeeBtn) {
                     if (email === 'educateindiainstitute@gmail.com' || email === 'pankajmahto109@gmail.com') {
