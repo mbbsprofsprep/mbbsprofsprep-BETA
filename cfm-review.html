@@ -810,7 +810,7 @@
             }
 
             if (visibleQuestions.length === 0) {
-                window.showModal("No Questions Found", "<p class='text-slate-600 dark:text-slate-400'>No visible questions found to download.</p>`, `<button onclick="window.closeModal()" class="w-full bg-slate-200 text-slate-800 font-bold py-3 rounded-xl border-none">Close</button>`, "⚠️");
+                window.showModal("No Questions Found", "<p class='text-slate-600 dark:text-slate-400'>No visible questions found to download.</p>", `<button onclick="window.closeModal()" class="w-full bg-slate-200 text-slate-800 font-bold py-3 rounded-xl border-none">Close</button>`, "⚠️");
                 return;
             }
 
@@ -1116,7 +1116,7 @@
             const realIndex = window.displayData.indexOf(q); 
             document.getElementById('deck-counter').innerText = `${window.deckIndex + 1}/${window.activeDeckQuestions.length}`;
 
-            // Admin Authentication (Needed for editing blocks and 3D back-faces)
+            // Admin Authentication
             const adminEmails = ["pankajmahto109@gmail.com", "educateindiainstitute@gmail.com", "indrajeet91434@gmail.com", "pankajkumarmahto1009@gmail.com"];
             const isAdmin = window.currentUserObj && window.currentUserObj.email && adminEmails.includes(window.currentUserObj.email.toLowerCase());
 
@@ -1155,6 +1155,7 @@
                 
                 questionHtml = `<div class="mb-6"><div class="theory-question shadow-sm dark:bg-dark-bg dark:text-brand-200 dark:border-brand-500 text-left"><span>${stemWithoutMarks}</span>${marksDisplay}</div>`; 
 
+                // --- NEW: DISPLAY PUBLISHED ANSWER IN DECK ---
                 let liveAns = window.liveAnswers[q.q] ? window.liveAnswers[q.q].text : "";
                 if (liveAns) {
                     questionHtml += `
@@ -1164,6 +1165,7 @@
                     </div>`;
                 }
 
+                // --- NEW: ADMIN EDITING AREA FOR DECK ---
                 if (isAdmin) {
                     questionHtml += `
                     <div class="mt-4 p-4 border border-dashed border-brand-300 bg-brand-50/50 dark:border-brand-700 dark:bg-slate-800/50 rounded-xl relative group">
@@ -1174,7 +1176,7 @@
                     </div>`;
                 }
                 
-                questionHtml += `</div>`; // Close the initial mb-6 container
+                questionHtml += `</div>`;
             }
 
             // --- FULL CARD ANKI-STYLE FLIP LOGIC ---
@@ -1423,7 +1425,6 @@
             }
         };
 
-        // --- ADMIN ANSWER SAVING LOGIC (Firebase RTDB) ---
         window.saveAdminAnswer = async function(qId, btn) {
             const text = document.getElementById(`admin-ans-${qId}`).value.trim();
             const originalText = btn.innerText;
@@ -1516,7 +1517,6 @@
                 btn.classList.remove('opacity-75');
             }
         };
-        // ------------------------------------------------
 
         window.saveEditedProfile = async function(btn) {
             const name = document.getElementById('edit-name').value.trim(); const joinYear = document.getElementById('edit-join-year').value; const college = document.getElementById('edit-college').value.trim(); const city = document.getElementById('edit-city').value.trim(); const phone = document.getElementById('edit-phone').value.trim();
@@ -1576,6 +1576,7 @@
                         if (window.isDeckMode) window.renderDeckCard();
                     }
                 });
+                // ------------------------------------
                 
                 if (coffeeBtn) {
                     if (email === 'educateindiainstitute@gmail.com' || email === 'pankajmahto109@gmail.com') {
@@ -1629,29 +1630,6 @@
             }
         });
 
-        // --- INLINE ZOOM HELPERS ---
-        window.zoomInCard = function(id) { if(window[`panzoom_${id}`]) window[`panzoom_${id}`].zoomIn(); };
-        window.zoomOutCard = function(id) { if(window[`panzoom_${id}`]) window[`panzoom_${id}`].zoomOut(); };
-        window.resetZoomCard = function(id) { if(window[`panzoom_${id}`]) window[`panzoom_${id}`].reset(); };
-
-        // Spacebar to flip Anki Card
-        document.addEventListener('keydown', (e) => {
-            if (window.isDeckMode) {
-                if (e.code === 'Space') {
-                    e.preventDefault(); // Stops the page from scrolling down
-                    const q = window.activeDeckQuestions[window.deckIndex];
-                    if (q && document.getElementById(`container-deck-${q.q}`)) {
-                        window.toggleFlashcard(`deck-${q.q}`);
-                    }
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault(); 
-                    window.deckNext();
-                } else if (e.key === 'ArrowLeft') {
-                    e.preventDefault(); 
-                    window.deckPrev();
-                }
-            }
-        });
     </script>
 </body>
 </html>
