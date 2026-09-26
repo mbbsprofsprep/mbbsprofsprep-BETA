@@ -280,6 +280,49 @@
             return rawId.replace(/[\.#$\[\]]/g, '').replace(/\s+/g, '_');
         };
 
+        // --- MARKDOWN PARSER (Gemini Output Formatter) ---
+        window.formatMarkdown = function(text) {
+            if (!text) return "";
+            let html = text
+                // Headers (H1, H2, H3)
+                .replace(/^### (.*$)/gim, '<h3 class="text-sm font-black mt-5 mb-2 text-slate-900 dark:text-white">$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2 class="text-base font-black mt-6 mb-2 text-slate-900 dark:text-white">$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1 class="text-lg font-black mt-6 mb-3 text-brand-600 dark:text-brand-400">$1</h1>')
+                
+                // Bold and Italics
+                .replace(/\*\*\*(.*?)\*\*\*/g, '<strong class="font-black italic text-slate-900 dark:text-white">$1</strong>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-black text-slate-900 dark:text-white">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em class="text-slate-800 dark:text-slate-200">$1</em>')
+                
+                // Horizontal Rules
+                .replace(/^---/gim, '<hr class="my-4 border-slate-300 dark:border-slate-600">')
+                
+                // Unordered Lists (* or - at start of line)
+                .replace(/^[\*-] (.*$)/gim, '<li class="ml-4 list-disc marker:text-brand-500 mb-1">$1</li>')
+                
+                // Line breaks
+                .replace(/\n/g, '<br>');
+            
+            // Clean up excessive break tags
+            html = html.replace(/(<br>\s*){2,}/g, '<br><br>');
+            return html;
+        };
+
+        // --- ROW TOGGLE LOGIC ---
+        window.toggleRowAnswer = function(id) {
+            const ansDiv = document.getElementById(`ans-${id}`);
+            const btn = document.getElementById(`btn-${id}`);
+            if (ansDiv) {
+                if (ansDiv.classList.contains('hidden')) {
+                    ansDiv.classList.remove('hidden');
+                    btn.innerHTML = '🙈 Hide Answer';
+                } else {
+                    ansDiv.classList.add('hidden');
+                    btn.innerHTML = '👁️ View Answer';
+                }
+            }
+        };
+
         // --- REPORT QUESTION LOGIC ---
         window.selectReportType = function(btn) {
             document.querySelectorAll('.rep-type-btn').forEach(b => b.classList.remove('ring-2', 'ring-offset-1', 'ring-red-400', 'bg-slate-100', 'dark:bg-slate-800'));
@@ -596,8 +639,40 @@
                 let cell2 = row.insertCell(); cell2.className = 'px-6 py-4 align-top';
                 
                 let qHtml = ''; const cleanStem = item.stem.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
+                
+                // Fetch the live answer from Firebase
+                let liveAns = window.liveAnswers[item.q] ? window.liveAnswers[item.q].text : "";
+                
+                // Construct the Interactive Answer Block
+                let ansBlockHtml = '';
+                if (liveAns) {
+                    ansBlockHtml = `
+                    <div class="mt-2">
+                        <button onclick="window.toggleRowAnswer('tbl-${item.q}')" id="btn-tbl-${item.q}" class="px-4 py-2 bg-brand-50 dark:bg-slate-800 text-brand-600 dark:text-brand-400 text-xs font-bold rounded-lg border border-brand-200 dark:border-slate-700 hover:bg-brand-100 dark:hover:bg-slate-700 transition-colors">
+                            👁️ View Answer
+                        </button>
+                        <div id="ans-tbl-${item.q}" class="hidden mt-3 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-xl text-sm text-slate-700 dark:text-slate-200 shadow-sm transition-all">
+                            <span class="font-black text-green-700 dark:text-green-400 block mb-3 text-xs uppercase tracking-widest">Model Answer / Explanation</span>
+                            <div class="leading-relaxed space-y-1">${window.formatMarkdown(liveAns)}</div>
+                        </div>
+                    </div>`;
+                }
+
+                // Construct the Admin Editor Block
+                let adminBlockHtml = '';
+                if (isAdmin) {
+                    adminBlockHtml = `
+                    <div class="mt-4 p-4 border border-dashed border-brand-300 bg-brand-50/50 dark:border-brand-700 dark:bg-slate-800/50 rounded-xl relative group">
+                        <div class="absolute top-0 right-0 bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 text-[10px] font-black px-3 py-1 rounded-bl-lg rounded-tr-xl tracking-wider">ADMIN MODE</div>
+                        <label class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest block mb-2 mt-2">Write / Edit Answer</label>
+                        <textarea id="admin-ans-${item.q}" class="w-full p-3 text-sm font-medium border border-slate-200 rounded-lg dark:bg-slate-900 dark:text-white dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none resize-y min-h-[100px]" placeholder="Paste Markdown from Gemini here...">${liveAns}</textarea>
+                        <button onclick="window.saveAdminAnswer('${item.q}', this)" class="mt-3 px-5 py-2.5 bg-brand-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-brand-500/30 hover:bg-brand-600 active:scale-95 transition-all">Publish to Platform</button>
+                    </div>`;
+                }
+
+                // Render Content based on Question Type
                 if (item.type === 'MCQ') {
-                    qHtml += `<span class="block font-semibold mb-2 text-slate-900 dark:text-white">${cleanStem}</span><div class="space-y-1">`;
+                    qHtml += `<span class="block font-semibold mb-2 text-slate-900 dark:text-white">${cleanStem}</span><div class="space-y-1 mb-2">`;
                     if (item.options && Array.isArray(item.options)) {
                          item.options.forEach((option, idx) => {
                             const optionLetter = window.optionLetters[idx] || '-'; const isCorrect = optionLetter === item.ans_key; const cleanOption = option.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -605,6 +680,8 @@
                         });
                     }
                     qHtml += '</div>';
+                    // Append answer blocks to MCQ
+                    qHtml += ansBlockHtml + adminBlockHtml;
                 } else { 
                     const markMatch = cleanStem.match(/(\(\d+(?:\+\d+)*=?\d*\))/); 
                     let stemWithoutMarks = cleanStem; let marksDisplay = '';
@@ -613,26 +690,9 @@
                         marksDisplay = `<div class="mt-2 text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 inline-block px-2 py-1 rounded border border-brand-200 dark:border-brand-700">${markMatch[0]}</div>`;
                     }
                     
-                    qHtml += `<div class="theory-question shadow-sm dark:bg-dark-surface dark:text-brand-200 dark:border-brand-500 text-left"><span>${stemWithoutMarks}</span>${marksDisplay}</div>`; 
-
-                    let liveAns = window.liveAnswers[item.q] ? window.liveAnswers[item.q].text : "";
-                    if (liveAns) {
-                        qHtml += `
-                        <div class="mt-3 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-xl text-sm text-slate-700 dark:text-slate-200 shadow-sm transition-all">
-                            <span class="font-black text-green-700 dark:text-green-400 block mb-2 text-xs uppercase tracking-widest">Model Answer</span>
-                            <div class="whitespace-pre-wrap leading-relaxed">${liveAns}</div>
-                        </div>`;
-                    }
-
-                    if (isAdmin) {
-                        qHtml += `
-                        <div class="mt-4 p-4 border border-dashed border-brand-300 bg-brand-50/50 dark:border-brand-700 dark:bg-slate-800/50 rounded-xl relative group">
-                            <div class="absolute top-0 right-0 bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 text-[10px] font-black px-3 py-1 rounded-bl-lg rounded-tr-xl tracking-wider">ADMIN MODE</div>
-                            <label class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest block mb-2 mt-2">Write / Edit Answer</label>
-                            <textarea id="admin-ans-${item.q}" class="w-full p-3 text-sm font-medium border border-slate-200 rounded-lg dark:bg-slate-900 dark:text-white dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none resize-y min-h-[100px]" placeholder="Type or paste the answer here...">${liveAns}</textarea>
-                            <button onclick="window.saveAdminAnswer('${item.q}', this)" class="mt-3 px-5 py-2.5 bg-brand-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-brand-500/30 hover:bg-brand-600 active:scale-95 transition-all">Publish to Platform</button>
-                        </div>`;
-                    }
+                    qHtml += `<div class="theory-question shadow-sm dark:bg-dark-surface dark:text-brand-200 dark:border-brand-500 text-left mb-2"><span>${stemWithoutMarks}</span>${marksDisplay}</div>`; 
+                    // Append answer blocks to Theory
+                    qHtml += ansBlockHtml + adminBlockHtml;
                 }
 
                 // --- ADMIN FLASHCARD RENDER LOGIC ---
@@ -1127,10 +1187,41 @@
             const bmkClass = bookmarked ? 'bg-yellow-100 text-yellow-600 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-700' : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
             const bmkText = bookmarked ? '⭐ Saved' : '🔖 Save';
 
+            // Fetch Live Answer from Firebase
+            let liveAns = window.liveAnswers[q.q] ? window.liveAnswers[q.q].text : "";
+            
+            // Construct the Interactive Answer Block
+            let ansBlockHtml = '';
+            if (liveAns) {
+                ansBlockHtml = `
+                <div class="mt-2 mb-2">
+                    <button onclick="window.toggleRowAnswer('dck-${q.q}')" id="btn-dck-${q.q}" class="px-4 py-2 bg-brand-50 dark:bg-slate-800 text-brand-600 dark:text-brand-400 text-xs font-bold rounded-lg border border-brand-200 dark:border-slate-700 hover:bg-brand-100 dark:hover:bg-slate-700 transition-colors">
+                        👁️ View Answer
+                    </button>
+                    <div id="ans-dck-${q.q}" class="hidden mt-3 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-xl text-sm text-slate-700 dark:text-slate-200 shadow-sm transition-all">
+                        <span class="font-black text-green-700 dark:text-green-400 block mb-3 text-xs uppercase tracking-widest">Model Answer / Explanation</span>
+                        <div class="leading-relaxed space-y-1">${window.formatMarkdown(liveAns)}</div>
+                    </div>
+                </div>`;
+            }
+
+            // Construct the Admin Editor Block
+            let adminBlockHtml = '';
+            if (isAdmin) {
+                adminBlockHtml = `
+                <div class="mt-4 p-4 border border-dashed border-brand-300 bg-brand-50/50 dark:border-brand-700 dark:bg-slate-800/50 rounded-xl relative group">
+                    <div class="absolute top-0 right-0 bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 text-[10px] font-black px-3 py-1 rounded-bl-lg rounded-tr-xl tracking-wider">ADMIN MODE</div>
+                    <label class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest block mb-2 mt-2">Write / Edit Answer</label>
+                    <textarea id="admin-ans-deck-${q.q}" class="w-full p-3 text-sm font-medium border border-slate-200 rounded-lg dark:bg-slate-900 dark:text-white dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none resize-y min-h-[100px]" placeholder="Paste Markdown from Gemini here...">${liveAns}</textarea>
+                    <button onclick="window.saveAdminAnswerDeck('${q.q}', this)" class="mt-3 px-5 py-2.5 bg-brand-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-brand-500/30 hover:bg-brand-600 active:scale-95 transition-all">Publish to Platform</button>
+                </div>`;
+            }
+
+            // Render Content based on Question Type
             if (q.type === 'MCQ') {
-                questionHtml = `<div class="mb-6"><h2 class="text-xl font-bold text-slate-900 dark:text-white leading-snug text-left">${cleanStem}</h2></div>`;
+                questionHtml = `<div class="mb-4"><h2 class="text-xl font-bold text-slate-900 dark:text-white leading-snug text-left">${cleanStem}</h2></div>`;
                 if (q.options) { 
-                    optsHtml = `<div class="space-y-3 pb-6">${q.options.map((opt, i) => { 
+                    optsHtml = `<div class="space-y-3 pb-4">${q.options.map((opt, i) => { 
                         const letter = window.optionLetters[i] || '-'; 
                         const cleanOpt = opt.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                         
@@ -1145,6 +1236,9 @@
                         return `<button onclick="window.checkDeckAnswer(this, '${letter}', '${q.ans_key}')" class="${btnClass}" ${disabledAttr}><div class="flex items-start gap-3"><span class="flex-shrink-0 w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 text-sm font-bold flex items-center justify-center border border-slate-200 dark:border-slate-600 group-hover:bg-brand-500 group-hover:text-white transition-colors">${letter}</span><span class="text-slate-700 dark:text-slate-200 font-medium pt-0.5 text-left w-full">${cleanOpt}</span></div></button>`; 
                     }).join('')}</div>`; 
                 }
+                
+                // Append answer blocks to MCQ
+                optsHtml += ansBlockHtml + adminBlockHtml;
             } else { 
                 const markMatch = cleanStem.match(/(\(\d+(?:\+\d+)*=?\d*\)|\[\d+(?:\+\d+)*=?\d*\])/);
                 let stemWithoutMarks = cleanStem; let marksDisplay = '';
@@ -1153,30 +1247,10 @@
                     marksDisplay = `<div class="mt-2 text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 inline-block px-2 py-1 rounded border border-brand-200 dark:border-brand-700">${markMatch[0]}</div>`;
                 }
                 
-                questionHtml = `<div class="mb-6"><div class="theory-question shadow-sm dark:bg-dark-bg dark:text-brand-200 dark:border-brand-500 text-left"><span>${stemWithoutMarks}</span>${marksDisplay}</div>`; 
-
-                // --- NEW: DISPLAY PUBLISHED ANSWER IN DECK ---
-                let liveAns = window.liveAnswers[q.q] ? window.liveAnswers[q.q].text : "";
-                if (liveAns) {
-                    questionHtml += `
-                    <div class="mt-3 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-xl text-sm text-slate-700 dark:text-slate-200 shadow-sm transition-all">
-                        <span class="font-black text-green-700 dark:text-green-400 block mb-2 text-xs uppercase tracking-widest">Model Answer</span>
-                        <div class="whitespace-pre-wrap leading-relaxed">${liveAns}</div>
-                    </div>`;
-                }
-
-                // --- NEW: ADMIN EDITING AREA FOR DECK ---
-                if (isAdmin) {
-                    questionHtml += `
-                    <div class="mt-4 p-4 border border-dashed border-brand-300 bg-brand-50/50 dark:border-brand-700 dark:bg-slate-800/50 rounded-xl relative group">
-                        <div class="absolute top-0 right-0 bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 text-[10px] font-black px-3 py-1 rounded-bl-lg rounded-tr-xl tracking-wider">ADMIN MODE</div>
-                        <label class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest block mb-2 mt-2">Write / Edit Answer</label>
-                        <textarea id="admin-ans-deck-${q.q}" class="w-full p-3 text-sm font-medium border border-slate-200 rounded-lg dark:bg-slate-900 dark:text-white dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none resize-y min-h-[100px]" placeholder="Type or paste the answer here...">${liveAns}</textarea>
-                        <button onclick="window.saveAdminAnswerDeck('${q.q}', this)" class="mt-3 px-5 py-2.5 bg-brand-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-brand-500/30 hover:bg-brand-600 active:scale-95 transition-all">Publish to Platform</button>
-                    </div>`;
-                }
+                questionHtml = `<div class="mb-4"><div class="theory-question shadow-sm dark:bg-dark-bg dark:text-brand-200 dark:border-brand-500 text-left"><span>${stemWithoutMarks}</span>${marksDisplay}</div></div>`; 
                 
-                questionHtml += `</div>`;
+                // Append answer blocks to Theory
+                questionHtml += ansBlockHtml + adminBlockHtml;
             }
 
             // --- FULL CARD ANKI-STYLE FLIP LOGIC ---
@@ -1567,7 +1641,7 @@
             if (user) {
                 const email = user.email.toLowerCase().trim();
                 
-                // --- NEW: LISTEN FOR LIVE ANSWERS ---
+                // --- LISTEN FOR LIVE ANSWERS ---
                 const answersRef = ref(db, `answers/${window.COLLEGE_CODE}/${window.SUBJECT_CODE}`);
                 onValue(answersRef, (snapshot) => {
                     window.liveAnswers = snapshot.val() || {};
